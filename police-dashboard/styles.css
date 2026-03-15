@@ -372,3 +372,27 @@ input:checked + .slider:before {
     70%  { box-shadow: 0 0 0 14px rgba(59,130,246,0); }
     100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .layout-container {
+        flex-direction: column-reverse;
+    }
+    .sidebar {
+        width: 100%;
+        height: 50vh;
+        border-right: none;
+        border-top: 1px solid var(--border-color);
+    }
+    .map-wrapper {
+        width: 100%;
+        height: 50vh;
+        min-height: 50vh;
+    }
+    .stats-panel {
+        flex-wrap: wrap;
+    }
+    .stat-card {
+        flex: 1 1 40%;
+    }
+}
