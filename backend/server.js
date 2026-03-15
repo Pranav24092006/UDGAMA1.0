@@ -8,6 +8,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Redirects to ensure trailing slashes so relative CSS/JS paths work perfectly on Render
+app.use((req, res, next) => {
+  if (req.path === '/ambulance') return res.redirect('/ambulance/');
+  if (req.path === '/police') return res.redirect('/police/');
+  next();
+});
+
 // Serve frontend files over HTTP (so GPS works in browser)
 app.use('/ambulance', express.static(path.join(__dirname, '../ambulance-interface')));
 app.use('/police',    express.static(path.join(__dirname, '../police-dashboard')));

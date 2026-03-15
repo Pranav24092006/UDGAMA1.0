@@ -5,7 +5,7 @@
 // Backend Auth: API_KEY in all fetch headers
 // ============================================================
 
-const BACKEND_URL = 'http://localhost:5000';
+const BACKEND_URL = window.location.origin; // Dynamically uses Render URL or Localhost
 const API_KEY     = 'a3f57487332515c5d7550721286de53a';
 const MAX_RADIUS_KM  = 50;
 const MOVE_INTERVAL  = 1200; // ms between each step (much faster now)
@@ -310,7 +310,7 @@ async function startEmergency() {
         locationInterval = setInterval(moveAlongRoute, MOVE_INTERVAL);
 
     } catch (e) {
-        showError("Connection failed. Is the backend running at port 5000?");
+        showError("Connection failed. Check your internet connection or backend server.");
         startBtn.disabled = false;
         startBtn.textContent = `🚨 Start Emergency → ${currentHospital.name}`;
         console.error(e);

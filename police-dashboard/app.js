@@ -4,7 +4,7 @@
 // Backend Auth: uses API_KEY in all fetch headers
 // ============================================================
 
-const BACKEND_URL = 'http://localhost:5000';
+const BACKEND_URL = window.location.origin; // Dynamically uses Render URL or Localhost
 const POLL_INTERVAL = 5000;
 const API_KEY = 'a3f57487332515c5d7550721286de53a'; // Backend security token
 
