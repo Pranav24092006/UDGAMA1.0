@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Ambulance Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="layout-container">
+        <aside class="sidebar">
+            <header>
+                <div id="recording-pulse" class="pulse-ring"></div>
+                <h1>🚑 Unit Console</h1>
+            </header>
+            <main class="sidebar-content">
+                <div class="card status-card">
+                    <h2>Emergency Status</h2>
+                    <div id="status-display" class="status inactive">
+                        <span class="indicator"></span>
+                        <span class="text">INACTIVE</span>
+                    </div>
+                </div>
+
+                <div id="start-form" class="card">
+                    <h2>Dispatch Information</h2>
+                    <div class="input-group">
+                        <label for="ambulance-id">Ambulance ID</label>
+                        <input type="text" id="ambulance-id" placeholder="e.g. Unit A1" required />
+                    </div>
+                    <button id="start-btn" class="btn btn-primary" disabled>Locating Nearest Hospital...</button>
+                </div>
+
+                <div id="active-dashboard" class="card hidden">
+                    <h2>Live Tracking</h2>
+                    <div class="info-row">
+                        <span class="label">Heading to:</span>
+                        <span id="display-hospital" class="value text-highlight">--</span>
+                    </div>
+                    <div class="coordinates-box">
+                        <div class="coord">
+                            <span class="label">LAT</span>
+                            <span id="lat-val" class="value">--.----</span>
+                        </div>
+                        <div class="coord">
+                            <span class="label">LNG</span>
+                            <span id="lng-val" class="value">--.----</span>
+                        </div>
+                    </div>
+                    <div class="ai-box">
+                        <div class="ai-header">
+                            <span class="icon">🎙️</span>
+                            <span>Navigation Assistant</span>
+                        </div>
+                        <div id="ai-text" class="ai-text">Awaiting route initialization...</div>
+                        <button id="test-voice-btn" class="btn btn-outline btn-small">Test Voice</button>
+                    </div>
+                    <button id="stop-btn" class="btn btn-danger">End Emergency</button>
+                </div>
+
+                <div id="error-msg" class="error hidden"></div>
+            </main>
+        </aside>
+
+        <main class="map-wrapper">
+            <div id="map"></div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

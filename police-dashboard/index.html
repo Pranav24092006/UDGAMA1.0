@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police Dispatch | Smart Ambulance System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="layout-container">
+        <aside class="sidebar">
+            <header>
+                <div class="brand">
+                    <span class="shield">🛡️</span>
+                    <h1>Police Dispatch</h1>
+                </div>
+                <div id="connection-status" class="status">
+                    <span class="indicator"></span>
+                    <span class="text">Connecting...</span>
+                </div>
+            </header>
+
+            <!-- Traffic Jam Alert Banner -->
+            <div id="traffic-alert" class="traffic-alert hidden">
+                <span class="icon">⚠️</span>
+                <div class="alert-content">
+                    <strong>TRAFFIC JAM DETECTED</strong>
+                    <span id="jam-details">Unit A1 reporting severe delay</span>
+                </div>
+                <button id="clear-jam-btn" class="clear-btn">CLEAR</button>
+            </div>
+            <section class="stats-panel">
+                <div class="stat-card">
+                    <h3>Active Emergencies</h3>
+                    <p id="active-count" class="stat-value text-red">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Idle Units</h3>
+                    <p id="idle-count" class="stat-value text-blue">0</p>
+                </div>
+            </section>
+            <section class="unit-list-section">
+                <h2>Tracked Units</h2>
+                <ul id="ambulance-list" class="ambulance-list">
+                    <li class="empty-state">No units currently being tracked.</li>
+                </ul>
+            </section>
+        </aside>
+
+        <main class="map-wrapper">
+            <div class="map-controls">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="sim-route-toggle" checked>
+                    <span class="slider"></span>
+                    <span class="toggle-label">Show Routes</span>
+                </label>
+            </div>
+            <div id="map"></div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
