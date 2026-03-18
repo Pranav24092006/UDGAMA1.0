@@ -76,8 +76,8 @@ function onGpsSuccess(lat, lng) {
     currentPos = { lat, lng };
 
     map = L.map('map').setView([lat, lng], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>', maxZoom: 19
     }).addTo(map);
 
     placeAmbuMarker(lat, lng, false);
@@ -218,23 +218,32 @@ async function fetchRoadRoute(fromLat, fromLng, toLat, toLng) {
 }
 
 // ── Map marker helpers ────────────────────────────────────────
-function makeIcon(emoji, pulse) {
+function makeIcon(type, active) {
+    let iconClass = 'custom-marker';
+    let iconHtml = '';
+    
+    if (type === 'ambulance') {
+        iconClass += active ? ' emergency' : '';
+        iconHtml = '<i class="ph-fill ph-ambulance"></i>';
+    } else if (type === 'hospital') {
+        iconClass += ' hospital';
+        iconHtml = '<i class="ph-fill ph-hospital"></i>';
+    }
+
     return L.divIcon({
         className: '',
-        html: `<div style="position:relative;width:40px;height:40px;">
-            ${pulse ? '<div class="lf-pulse"></div>' : ''}
-            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,.3);">${emoji}</div>
-        </div>`,
-        iconSize: [40, 40], iconAnchor: [20, 20]
+        html: `<div class="${iconClass}" style="width: 40px; height: 40px;">${iconHtml}</div>`,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
     });
 }
 
 function placeAmbuMarker(lat, lng, active) {
     if (myMarker) {
         myMarker.setLatLng([lat, lng]);
-        myMarker.setIcon(makeIcon('🚑', active));
+        myMarker.setIcon(makeIcon('ambulance', active));
     } else {
-        myMarker = L.marker([lat, lng], { icon: makeIcon('🚑', active) }).addTo(map);
+        myMarker = L.marker([lat, lng], { icon: makeIcon('ambulance', active) }).addTo(map);
     }
 }
 
@@ -295,7 +304,7 @@ async function startEmergency() {
 
         if (!hospMarker) {
             hospMarker = L.marker([currentHospital.lat, currentHospital.lng], {
-                icon: makeIcon('🏥', false)
+                icon: makeIcon('hospital', false)
             }).addTo(map);
             hospMarker.bindPopup(`<b>${currentHospital.name}</b><br/>Destination`).openPopup();
         }

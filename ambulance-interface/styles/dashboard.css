@@ -1,0 +1,250 @@
+/* ==========================================================================
+   Dashboard Styles
+   ========================================================================== */
+#dashboard-page {
+  display: flex;
+  background-color: var(--bg-darker);
+}
+
+/* Map Container */
+.map-container {
+  flex: 1;
+  height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* Overlay Glass Panel */
+.dashboard-panel {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  bottom: 20px;
+  width: 380px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow-y: auto;
+  transform: translateX(120%);
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Make it slide in when active */
+#dashboard-page.active .dashboard-panel {
+  transform: translateX(0);
+}
+
+/* Panel Header */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(10, 132, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(10, 132, 255, 0.2);
+}
+
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  background-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: pulseBlue 1.5s infinite;
+}
+
+.status-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.icon-toggle {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-toggle.active {
+  color: var(--accent-blue);
+  box-shadow: 0 0 15px rgba(10, 132, 255, 0.3);
+}
+
+/* Info Modules */
+.info-module {
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.info-module h3 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.info-label i {
+  width: 16px;
+  text-align: center;
+  margin-right: 6px;
+}
+
+.info-value {
+  font-family: var(--font-secondary);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.info-value.highlight {
+  font-size: 1.3rem;
+  color: white;
+  font-weight: 600;
+}
+
+/* ETA Box */
+.eta-box {
+  margin-top: 20px;
+  background: linear-gradient(135deg, rgba(255,59,48,0.1) 0%, rgba(255,59,48,0.05) 100%);
+  border: 1px solid rgba(255,59,48,0.2);
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+}
+
+.eta-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.eta-time {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--accent-red);
+  text-shadow: 0 0 10px rgba(255,59,48,0.3);
+}
+
+/* Action Module */
+.action-module {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+/* Toast Notifications */
+#toast-container {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 2000;
+}
+
+.toast {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,59,48,0.3);
+  border-left: 4px solid var(--accent-red);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  animation: slideUpToast 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes slideUpToast {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.toast.fade-out {
+  animation: fadeOutToast 0.4s forwards;
+}
+
+@keyframes fadeOutToast {
+  to { opacity: 0; transform: translateY(-10px) scale(0.95); }
+}
+
+/* Leaflet Customizations for Dark Mode */
+.leaflet-container {
+  background: #000;
+  font-family: var(--font-primary);
+}
+
+.leaflet-tile {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: var(--glass-shadow) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+  background-color: var(--glass-bg) !important;
+  color: white !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border) !important;
+}
+
+.leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover {
+  background-color: rgba(255,255,255,0.1) !important;
+}
+
+.leaflet-routing-container {
+  display: none !important; /* hide default routing UI */
+}

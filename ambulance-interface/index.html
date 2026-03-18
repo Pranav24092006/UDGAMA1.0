@@ -1,75 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Ambulance Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Ambulance Coordination System</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Core Styles -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/landing.css">
+  <link rel="stylesheet" href="styles/dashboard.css">
+  <link rel="stylesheet" href="styles/animations.css">
 </head>
 <body>
-    <div class="layout-container">
-        <aside class="sidebar">
-            <header>
-                <div id="recording-pulse" class="pulse-ring"></div>
-                <h1>🚑 Unit Console</h1>
-            </header>
-            <main class="sidebar-content">
-                <div class="card status-card">
-                    <h2>Emergency Status</h2>
-                    <div id="status-display" class="status inactive">
-                        <span class="indicator"></span>
-                        <span class="text">INACTIVE</span>
-                    </div>
-                </div>
 
-                <div id="start-form" class="card">
-                    <h2>Dispatch Information</h2>
-                    <div class="input-group">
-                        <label for="ambulance-id">Ambulance ID</label>
-                        <input type="text" id="ambulance-id" placeholder="e.g. Unit A1" required />
-                    </div>
-                    <button id="start-btn" class="btn btn-primary" disabled>Locating Nearest Hospital...</button>
-                </div>
+  <!-- =============================== -->
+  <!-- 1. LANDING PAGE SECTION         -->
+  <!-- =============================== -->
+  <section id="landing-page" class="active">
+    <div class="overlay"></div>
+    <div class="stars"></div>
+    <div class="glowing-orb orb-1"></div>
+    <div class="glowing-orb orb-2"></div>
 
-                <div id="active-dashboard" class="card hidden">
-                    <h2>Live Tracking</h2>
-                    <div class="info-row">
-                        <span class="label">Heading to:</span>
-                        <span id="display-hospital" class="value text-highlight">--</span>
-                    </div>
-                    <div class="coordinates-box">
-                        <div class="coord">
-                            <span class="label">LAT</span>
-                            <span id="lat-val" class="value">--.----</span>
-                        </div>
-                        <div class="coord">
-                            <span class="label">LNG</span>
-                            <span id="lng-val" class="value">--.----</span>
-                        </div>
-                    </div>
-                    <div class="ai-box">
-                        <div class="ai-header">
-                            <span class="icon">🎙️</span>
-                            <span>Navigation Assistant</span>
-                        </div>
-                        <div id="ai-text" class="ai-text">Awaiting route initialization...</div>
-                        <button id="test-voice-btn" class="btn btn-outline btn-small">Test Voice</button>
-                    </div>
-                    <button id="stop-btn" class="btn btn-danger">End Emergency</button>
-                </div>
+    <div class="landing-content">
+      <h1 class="project-title">
+        <span class="title-highlight">Smart</span> Ambulance <br/>Coordination System
+      </h1>
 
-                <div id="error-msg" class="error hidden"></div>
-            </main>
-        </aside>
+      <div class="glass-card login-card">
+        <h2>Driver Portal</h2>
+        <div class="input-group">
+          <i class="fa-solid fa-ambulance"></i>
+          <input type="text" id="ambulance-id" placeholder="Enter Ambulance ID e.g., AMB-101" autocomplete="off" />
+        </div>
+        <button id="start-btn" class="primary-btn pulse-glow">
+          Start Emergency <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
 
-        <main class="map-wrapper">
-            <div id="map"></div>
-        </main>
+  <!-- =============================== -->
+  <!-- 2. TRANSITION SCREEN            -->
+  <!-- =============================== -->
+  <section id="transition-screen">
+    <!-- Inline SVG for ambulance -->
+    <div class="ambulance-vehicle" id="ambulance-transition-vehicle">
+      <div class="siren red-siren"></div>
+      <div class="siren blue-siren"></div>
+      <svg viewBox="0 0 100 50" width="300px" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 10 35 L 10 15 C 10 12 12 10 15 10 L 60 10 L 75 10 L 85 20 L 90 20 C 92 20 95 22 95 25 L 95 35 Z" fill="#ffffff" stroke="#e0e0e0" stroke-width="2"/>
+        <path d="M 60 10 L 75 10 L 85 20 L 60 20 Z" fill="#87CEEB" opacity="0.6"/>
+        <rect x="25" y="15" width="20" height="15" fill="#ff4d4d"/>
+        <rect x="32.5" y="10" width="5" height="25" fill="#ff4d4d"/>
+        <circle cx="25" cy="35" r="7" fill="#333"/>
+        <circle cx="25" cy="35" r="3" fill="#ccc"/>
+        <circle cx="75" cy="35" r="7" fill="#333"/>
+        <circle cx="75" cy="35" r="3" fill="#ccc"/>
+      </svg>
+      <div class="motion-lines">
+        <div class="line l1"></div>
+        <div class="line l2"></div>
+        <div class="line l3"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================== -->
+  <!-- 3. DASHBOARD INTERFACE          -->
+  <!-- =============================== -->
+  <section id="dashboard-page">
+    
+    <!-- Left Map Section -->
+    <div class="map-container" id="map">
+      <!-- Leaflet map injected here -->
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js"></script>
+    <!-- Right Panel: Glass UI -->
+    <div class="glass-panel dashboard-panel">
+      
+      <div class="panel-header">
+        <div class="status-indicator">
+          <div class="pulse-dot"></div>
+          <span class="status-text">Live Tracking</span>
+        </div>
+        <button id="voice-toggle" class="icon-toggle active" title="Disable Voice Navigation">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
+
+      <div class="info-module">
+        <h3>Ambulance Details</h3>
+        <div class="info-row">
+          <span class="info-label"><i class="fa-solid fa-truck-medical"></i> ID:</span>
+          <span class="info-value highlight" id="display-ambulance-id">AMB-101</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="fa-solid fa-location-dot"></i> Current Location:</span>
+          <span class="info-value" id="display-location">Fetching...</span>
+        </div>
+      </div>
+
+      <div class="info-module target-hospital">
+        <h3>Destination</h3>
+        <div class="info-row">
+          <span class="info-label"><i class="fa-solid fa-square-h"></i> Nearest Hospital:</span>
+          <span class="info-value text-accent" id="display-hospital">City General Hospital</span>
+        </div>
+        <div class="eta-box">
+          <div class="eta-label">Estimated Time of Arrival</div>
+          <div class="eta-time" id="display-eta">08 Min</div>
+        </div>
+      </div>
+
+      <div class="action-module">
+        <button id="alert-button" class="danger-btn slide-hover">
+          <i class="fa-solid fa-triangle-exclamation"></i> Send Traffic Alert
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+  </section>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Application Scripts -->
+  <script src="scripts/map.js"></script>
+  <script src="scripts/voice.js"></script>
+  <script src="scripts/app.js"></script>
 </body>
 </html>

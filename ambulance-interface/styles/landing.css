@@ -1,0 +1,91 @@
+/* ==========================================================================
+   Landing Page Styles
+   ========================================================================== */
+#landing-page {
+  background: url('https://images.unsplash.com/photo-1587563032588-ac012b1a8d00?q=80&w=1920&auto=format&fit=crop') no-repeat center center/cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(5,5,8,0.9) 0%, rgba(20,5,5,0.85) 100%);
+  z-index: 1;
+}
+
+.glowing-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 2;
+  opacity: 0.5;
+  animation: floatOrb 10s infinite alternate ease-in-out;
+}
+
+.orb-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--accent-red);
+  top: -100px;
+  left: -100px;
+}
+
+.orb-2 {
+  width: 300px;
+  height: 300px;
+  background: var(--accent-blue);
+  bottom: -50px;
+  right: -50px;
+  animation-delay: -5s;
+}
+
+.landing-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 40px;
+}
+
+.project-title {
+  font-size: 4rem;
+  line-height: 1.2;
+  letter-spacing: -1px;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.title-highlight {
+  color: var(--accent-red);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 1.2rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* Glassmorphism Card */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--glass-shadow);
+  transform: translateY(20px);
+  opacity: 0;
+  animation: slideUpFade 1s 0.5s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.glass-card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 30px;
+  font-weight: 500;
+  color: #e0e0e0;
+}

@@ -1,0 +1,163 @@
+/* ==========================================================================
+   Animations & Transition Screen
+   ========================================================================== */
+
+/* Utility Animations */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatOrb {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(20px, -20px); }
+}
+
+@keyframes pulseBlue {
+  0% { box-shadow: 0 0 0 0 rgba(10, 132, 255, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(10, 132, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(10, 132, 255, 0); }
+}
+
+@keyframes pulseRedGlow {
+  0% { box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3); }
+  50% { box-shadow: 0 4px 25px rgba(255, 59, 48, 0.6); }
+  100% { box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3); }
+}
+
+.pulse-glow {
+  animation: pulseRedGlow 2s infinite;
+}
+
+/* Transition Screen - The Wipe */
+#transition-screen {
+  background: var(--bg-dark);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#transition-screen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #050508 0%, rgba(200,30,30,0.1) 50%, #050508 100%);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+#transition-screen.active::before {
+  opacity: 1;
+}
+
+/* Ambulance Vehicle Wrapper */
+.ambulance-vehicle {
+  position: absolute;
+  top: 50%;
+  left: -20%; /* Start off-screen left */
+  transform: translateY(-50%);
+  width: 300px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Animation class triggered by JS */
+.drive-across {
+  animation: driveFast 2.5s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+}
+
+@keyframes driveFast {
+  0% { left: -20%; transform: translateY(-50%) rotate(-1deg); }
+  40% { left: 45%; transform: translateY(-50%) rotate(0deg); }
+  60% { left: 55%; transform: translateY(-50%) rotate(1deg); }
+  100% { left: 120%; transform: translateY(-50%) rotate(0deg); }
+}
+
+/* Sirens */
+.siren {
+  position: absolute;
+  top: 25px;
+  width: 80px;
+  height: 40px;
+  border-radius: 50%;
+  filter: blur(20px);
+  opacity: 0;
+}
+
+.red-siren {
+  background: #ff0000;
+  left: 50px;
+}
+
+.blue-siren {
+  background: #0088ff;
+  right: 50px;
+}
+
+.drive-across .red-siren {
+  animation: flashRed 0.3s infinite alternate;
+}
+
+.drive-across .blue-siren {
+  animation: flashBlue 0.3s infinite alternate;
+  animation-delay: 0.15s;
+}
+
+@keyframes flashRed {
+  0% { opacity: 0; box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+  100% { opacity: 0.6; box-shadow: 0 0 40px 20px rgba(255,0,0,0.5); }
+}
+
+@keyframes flashBlue {
+  0% { opacity: 0; box-shadow: 0 0 0 0 rgba(0,136,255,0); }
+  100% { opacity: 0.6; box-shadow: 0 0 40px 20px rgba(0,136,255,0.5); }
+}
+
+/* Motion Blur Lines */
+.motion-lines {
+  position: absolute;
+  width: 200vw;
+  height: 100vh;
+  left: -100vw;
+  top: -50vh;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.line {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  width: 500px;
+  opacity: 0;
+}
+
+.drive-across .line.l1 { top: 40%; animation: streak 0.8s 0.2s infinite linear; }
+.drive-across .line.l2 { top: 60%; animation: streak 0.6s 0.5s infinite linear; }
+.drive-across .line.l3 { top: 70%; animation: streak 1s 0.1s infinite linear; }
+
+@keyframes streak {
+  0% { transform: translateX(100vw); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateX(-100vw); opacity: 0; }
+}
+
+/* SVG Wheel Rotation */
+.drive-across svg circle[r="7"] {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: spinWheel 0.5s linear infinite;
+}
+
+@keyframes spinWheel {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
