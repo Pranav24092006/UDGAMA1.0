@@ -480,11 +480,18 @@ const MapManager = {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ambulanceId: window.currentAmbulanceId, lat: pos[0], lng: pos[1] })
         })
-        .then(r => {
-           if (r.ok) {
-             if (typeof setSyncStatus === 'function') setSyncStatus("Telemetry Synced with Command Center", "success");
-           } else {
-             if (typeof setSyncStatus === 'function') setSyncStatus("Sync Error: Backend Rejected Data", "danger");
+        .then(r => r.json())
+        .then(res => {
+           if (typeof setSyncStatus === 'function') setSyncStatus("Telemetry Synced with Command Center", "success");
+           
+           const amb = res.ambulance;
+           if (amb) {
+             if (amb.status === 'DISPATCHED' && !this.policeDispatched) {
+               this.onPoliceDispatched();
+             }
+             if (amb.status === 'CLEARED' && !this.trafficClearing && this.trafficLayer) {
+               this.startRouteClearingAnimation();
+             }
            }
         })
         .catch(e => {
@@ -533,7 +540,7 @@ const MapManager = {
 
     // Broadcast alert to backend
     if (window.currentAmbulanceId && navigator.onLine) {
-      fetch('http://localhost:5000/report-jam', {
+      fetch(`${window.location.origin}/report-jam`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ambulanceId: window.currentAmbulanceId,
