@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
       PoliceMapManager.triggerRipple(PoliceMapManager.ambMarker.getLatLng(), '#28c840', 1000);
     }
     if (window.currentAmbulanceId) {
-      await fetch('http://localhost:5000/manual-clear', {
+      await fetch(`${window.location.origin}/manual-clear`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ambulanceId: window.currentAmbulanceId })
       });
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
       PoliceMapManager.triggerRipple([pos.lat + 0.002, pos.lng + 0.002], '#ef4444', 800);
     }
     if (window.currentAmbulanceId) {
-      await fetch('http://localhost:5000/block-intersection', {
+      await fetch(`${window.location.origin}/block-intersection`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ambulanceId: window.currentAmbulanceId })
       });
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
       PoliceMapManager.triggerRipple(PoliceMapManager.ambMarker.getLatLng(), '#0ea5e9', 1500);
     }
     if (window.currentAmbulanceId) {
-      await fetch('http://localhost:5000/alert-units', {
+      await fetch(`${window.location.origin}/alert-units`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ambulanceId: window.currentAmbulanceId })
       });
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     policeSyncStatus.style.display = 'block';
 
     if (window.currentAmbulanceId) {
-      await fetch('http://localhost:5000/dispatch-police', {
+      await fetch(`${window.location.origin}/dispatch-police`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ambulanceId: window.currentAmbulanceId })
       });
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Police Dashboard will clear after a few seconds and tell backend to clear route
     setTimeout(async () => {
       if (window.currentAmbulanceId) {
-        await fetch('http://localhost:5000/clear-route', {
+        await fetch(`${window.location.origin}/clear-route`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ambulanceId: window.currentAmbulanceId })
         });
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setInterval(async () => {
     try {
-      const res = await fetch('http://localhost:5000/ambulance-location');
+      const res = await fetch(`${window.location.origin}/ambulance-location`);
       if (res.ok) {
         const ambulances = await res.json();
         // Since it's a demo, just pick the first active ambulance

@@ -5,7 +5,7 @@
 // =============================================
 // API Service replacing SyncBus
 // =============================================
-const API_BASE = "http://localhost:5000";
+const API_BASE = window.location.origin;
 
 const ApiService = {
   async startEmergency(ambulanceId, destinationHospital) {

@@ -397,7 +397,7 @@ const MapManager = {
 
         // Store route in backend
         if (window.currentAmbulanceId) {
-          fetch('http://localhost:5000/store-route', {
+          fetch(`${window.location.origin}/store-route`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ambulanceId: window.currentAmbulanceId, route: this.allCoords })
           }).catch(e => {});
@@ -476,7 +476,7 @@ const MapManager = {
 
       // POST location to server
       if (window.currentAmbulanceId && navigator.onLine) {
-        fetch('http://localhost:5000/update-location', {
+        fetch(`${window.location.origin}/update-location`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ambulanceId: window.currentAmbulanceId, lat: pos[0], lng: pos[1] })
         })
