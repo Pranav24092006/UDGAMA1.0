@@ -1,0 +1,296 @@
+/* ==========================================================================
+   Police Dashboard Layout
+   ========================================================================== */
+
+#dashboard-page {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  display: flex;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+  z-index: 10;
+}
+
+#dashboard-page.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Map specific setup */
+#map {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+}
+
+/* Tactical Overlay pattern */
+.tactical-grid-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: 
+    linear-gradient(rgba(14, 165, 233, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 233, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Header Brand */
+.brand-header {
+  position: absolute;
+  top: 20px; left: 30px;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: linear-gradient(90deg, var(--glass-bg) 0%, transparent 100%);
+  padding: 15px 40px 15px 20px;
+  border-left: 4px solid var(--neon-blue);
+  border-radius: 4px;
+}
+
+.shield-icon {
+  font-size: 2.5rem;
+  color: var(--neon-blue);
+  filter: drop-shadow(0 0 10px var(--neon-blue-glow));
+}
+
+.brand-text h1 {
+  font-size: 1.4rem;
+  color: white;
+  margin: 0 0 4px 0;
+}
+
+.sys-status {
+  font-size: 0.8rem;
+  color: var(--neon-blue);
+  font-family: var(--font-display);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.live-dot {
+  width: 8px; height: 8px;
+  background: var(--neon-blue);
+  border-radius: 50%;
+  animation: blinkFast 1s infinite alternate;
+}
+
+/* Right Control Panel Main */
+.glass-panel {
+  position: absolute;
+  right: 20px; top: 20px; bottom: 20px;
+  width: 360px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(14, 165, 233, 0.05);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+  transform: translateX(120%);
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+#dashboard-page.active .glass-panel {
+  transform: translateX(0);
+}
+
+.panel-section {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed rgba(14, 165, 233, 0.2);
+}
+
+.panel-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.panel-section h3 {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.stat-box {
+  flex: 1;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(14, 165, 233, 0.15);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
+/* Details */
+.tracking-details .detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.tracking-details .label { color: #7f8ea3; }
+.tracking-details .value { font-weight: 600; text-align: right; }
+
+.eta-large {
+  margin-top: 15px;
+  text-align: center;
+  background: rgba(14, 165, 233, 0.05);
+  border: 1px solid var(--neon-blue);
+  border-radius: 6px;
+  padding: 15px;
+  box-shadow: inset 0 0 15px rgba(14, 165, 233, 0.1);
+}
+
+.eta-title {
+  font-size: 0.8rem;
+  color: var(--neon-blue);
+  font-family: var(--font-display);
+  margin-bottom: 5px;
+}
+
+.eta-countdown {
+  font-size: 2.5rem;
+  font-weight: 900;
+  font-family: var(--font-display);
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+/* Mini Widgets */
+.mini-widgets {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: auto;
+}
+
+.widget {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.widget-header {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-display);
+}
+
+/* Camera Box */
+.cam-view-box {
+  position: relative;
+  height: 80px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.static-overlay {
+  position: absolute; top:0; left:0; width:100%; height:100%;
+  background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px);
+  animation: staticScroll 10s linear infinite;
+  opacity: 0.5;
+}
+
+.rec-dot {
+  position: absolute; top: 5px; right: 8px;
+  color: red; font-size: 0.7rem; font-weight: bold;
+  animation: blinkFast 1s infinite alternate;
+}
+
+.timestamp {
+  position: absolute; bottom: 5px; left: 8px;
+  color: white; font-family: monospace; font-size: 0.7rem;
+}
+
+/* Graph Box */
+.graph-box {
+  height: 50px;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 5px 0;
+}
+
+.bar {
+  flex: 1;
+  background: var(--neon-blue);
+  box-shadow: 0 0 5px var(--neon-blue-glow);
+  min-height: 5px;
+  border-radius: 2px 2px 0 0;
+  animation: barGraph 2s ease-in-out infinite alternate;
+}
+
+.b1 { height: 20%; animation-delay: 0s; }
+.b2 { height: 50%; animation-delay: -0.5s; }
+.b3 { height: 80%; animation-delay: -1s; }
+.b4 { height: 40%; animation-delay: -1.5s; }
+.b5 { height: 60%; animation-delay: -2s; }
+
+/* Custom Map Overlay styling */
+.leaflet-container { background: #000; font-family: var(--font-ui); }
+.leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(120%) saturate(150%); }
+.leaflet-control-zoom { border: none !important; border-radius: 4px !important; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.8) !important; }
+.leaflet-control-zoom a { background: rgba(7, 13, 25, 0.9) !important; color: var(--neon-blue) !important; border: 1px solid var(--glass-border) !important; }
+
+/* =============================================
+   Dispatch Section & Sync Bar Additions
+   ============================================= */
+
+.dispatch-section {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  border-radius: 8px;
+  padding: 18px !important;
+}
+
+.dispatch-btn:hover {
+  background: rgba(239, 68, 68, 0.35) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+  transform: translateX(4px);
+}
+
+.police-sync-bar {
+  margin-top: 12px;
+  font-size: 0.88rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+  display: none;
+}

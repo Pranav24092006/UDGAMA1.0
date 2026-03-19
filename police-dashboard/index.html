@@ -1,67 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Police Dispatch | Smart Ambulance System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Police Command Control | Smart Ambulance System</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Core Styles -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/dashboard.css">
+  <link rel="stylesheet" href="styles/animations.css">
 </head>
 <body>
-    <div class="layout-container">
-        <aside class="sidebar">
-            <header>
-                <div class="brand">
-                    <span class="shield">🛡️</span>
-                    <h1>Police Dispatch</h1>
-                </div>
-                <div id="connection-status" class="status">
-                    <span class="indicator"></span>
-                    <span class="text">Connecting...</span>
-                </div>
-            </header>
 
-            <!-- Traffic Jam Alert Banner -->
-            <div id="traffic-alert" class="traffic-alert hidden">
-                <span class="icon">⚠️</span>
-                <div class="alert-content">
-                    <strong>TRAFFIC JAM DETECTED</strong>
-                    <span id="jam-details">Unit A1 reporting severe delay</span>
-                </div>
-                <button id="clear-jam-btn" class="clear-btn">CLEAR</button>
-            </div>
-            <section class="stats-panel">
-                <div class="stat-card">
-                    <h3>Active Emergencies</h3>
-                    <p id="active-count" class="stat-value text-red">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Idle Units</h3>
-                    <p id="idle-count" class="stat-value text-blue">0</p>
-                </div>
-            </section>
-            <section class="unit-list-section">
-                <h2>Tracked Units</h2>
-                <ul id="ambulance-list" class="ambulance-list">
-                    <li class="empty-state">No units currently being tracked.</li>
-                </ul>
-            </section>
-        </aside>
+  <!-- =============================== -->
+  <!-- 1. LOADING OVERLAY              -->
+  <!-- =============================== -->
+  <div id="loading-screen" class="active">
+    <div class="radar-container">
+      <div class="radar"></div>
+      <div class="radar-sweep"></div>
+      <div class="target-blip"></div>
+    </div>
+    <div class="loading-text">CONNECTING TO EMERGENCY NETWORK<span class="dots">...</span></div>
+    <div class="loading-bar"><div class="loading-progress"></div></div>
+  </div>
 
-        <main class="map-wrapper">
-            <div class="map-controls">
-                <label class="toggle-switch">
-                    <input type="checkbox" id="sim-route-toggle" checked>
-                    <span class="slider"></span>
-                    <span class="toggle-label">Show Routes</span>
-                </label>
-            </div>
-            <div id="map"></div>
-        </main>
+  <!-- =============================== -->
+  <!-- 2. MAIN DASHBOARD               -->
+  <!-- =============================== -->
+  <div id="dashboard-page">
+    
+    <!-- Background Grid / Radar Overlay over map -->
+    <div class="tactical-grid-overlay"></div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Left Header Title Area -->
+    <div class="brand-header">
+      <div class="shield-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="brand-text">
+        <h1>CITY TRAFFIC COMMAND</h1>
+        <div class="sys-status"><span class="live-dot"></span> SYSTEM ONLINE</div>
+      </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js"></script>
+    <!-- Right Control Panel -->
+    <div class="control-panel glass-panel">
+      
+      <!-- Stats Header -->
+      <div class="panel-section stats-grid">
+        <div class="stat-box align-center">
+          <div class="stat-label">ACTIVE AMB</div>
+          <div class="stat-value text-blue" id="active-count">01</div>
+        </div>
+        <div class="stat-box align-center">
+          <div class="stat-label">STATUS</div>
+          <div class="stat-value text-red blink-text" id="emergency-status">ACTIVE</div>
+        </div>
+      </div>
+
+      <!-- Live Tracking Info -->
+      <div class="panel-section tracking-details">
+        <h3><i class="fa-solid fa-satellite-dish"></i> Live Intercept</h3>
+        <div class="detail-row">
+          <span class="label">Unit ID:</span>
+          <span class="value text-accent">AMB-101</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Destination:</span>
+          <span class="value">City General Hospital</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Coordinates:</span>
+          <span class="value mono" id="live-coords">12.9716, 77.5946</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Traffic Dist:</span>
+          <span class="value mono text-gray" id="dist-to-jam">NO JAM</span>
+        </div>
+        <div class="eta-large">
+          <div class="eta-title">ETA TO HOSPITAL</div>
+          <div class="eta-countdown" id="eta-timer">08:00</div>
+        </div>
+      </div>
+
+      <!-- Tactical Controls -->
+      <div class="panel-section tactical-controls">
+        <h3><i class="fa-solid fa-traffic-light"></i> Traffic Measures</h3>
+        <button class="tactical-btn clear-route-btn" id="btn-clear-route">
+          <i class="fa-solid fa-road-circle-check"></i> CLEAR ROUTE
+          <div class="btn-glow"></div>
+        </button>
+        <button class="tactical-btn block-intersect-btn" id="btn-block">
+          <i class="fa-solid fa-ban"></i> BLOCK INTERSECTION
+          <div class="btn-glow"></div>
+        </button>
+        <button class="tactical-btn alert-units-btn" id="btn-alert">
+          <i class="fa-solid fa-bullhorn"></i> ALERT NEARBY UNITS
+          <div class="btn-glow"></div>
+        </button>
+      </div>
+
+      <!-- Dispatch Section (visible after ambulance alert) -->
+      <div class="panel-section dispatch-section" id="dispatch-section" style="display:none;">
+        <h3 style="color:#ef4444;"><i class="fa-solid fa-siren-on"></i> Emergency Received</h3>
+        <p style="font-size:0.9rem;color:#aaa;margin-bottom:14px;line-height:1.5;">Ambulance AMB-101 requires immediate route clearance.</p>
+        <button class="tactical-btn dispatch-btn" id="btn-dispatch" style="background:rgba(239,68,68,0.2);border-color:#ef4444;color:#ef4444;">
+          <i class="fa-solid fa-car-burst"></i> DISPATCH TEAM
+          <div class="btn-glow"></div>
+        </button>
+        <div id="police-sync-status" class="police-sync-bar"></div>
+      </div>
+
+      <!-- Mini Widgets -->
+      <div class="panel-section mini-widgets">
+        
+        <div class="widget cam-feed">
+          <div class="widget-header"><i class="fa-solid fa-video"></i> CAM #42 (ROUTE)</div>
+          <div class="cam-view-box">
+            <div class="static-overlay"></div>
+            <div class="rec-dot">REC</div>
+            <div class="timestamp" id="cam-time">14:00:22</div>
+          </div>
+        </div>
+
+        <div class="widget response-graph">
+          <div class="widget-header"><i class="fa-solid fa-chart-line"></i> RESPONSE METRICS</div>
+          <div class="graph-box">
+            <div class="bar b1"></div>
+            <div class="bar b2"></div>
+            <div class="bar b3"></div>
+            <div class="bar b4"></div>
+            <div class="bar b5"></div>
+            <div class="graph-line"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Application Scripts -->
+  <script src="scripts/map.js"></script>
+  <script src="scripts/app.js"></script>
 </body>
 </html>

@@ -7,12 +7,17 @@ const VoiceNav = {
   synth: window.speechSynthesis,
   voiceToggleBtn: document.getElementById('voice-toggle'),
   currentUtterance: null,
+  voicesLoaded: false,
 
   init() {
     // Wait for voices to load
     if (this.synth.onvoiceschanged !== undefined) {
-      this.synth.onvoiceschanged = this.getVoices.bind(this);
+      this.synth.onvoiceschanged = () => {
+        this.getVoices();
+        this.voicesLoaded = true;
+      };
     }
+    this.getVoices();
 
     if (this.voiceToggleBtn) {
       this.voiceToggleBtn.addEventListener('click', () => {
@@ -38,12 +43,15 @@ const VoiceNav = {
     }
   },
 
-  speak(text) {
+  speak(text, priority = false) {
     if (!this.isEnabled) return;
     
-    // Cancel any ongoing speech
-    if (this.synth.speaking) {
+    // Cancel any ongoing speech if this is priority
+    if (this.synth.speaking && priority) {
       this.synth.cancel();
+    } else if (this.synth.speaking && !priority) {
+      // If currently speaking and new msg is NOT priority, ignore or queue (we just ignore for realism/pacing)
+      return;
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -58,14 +66,73 @@ const VoiceNav = {
     }
 
     utterance.rate = 1.0;
-    utterance.pitch = 1.1; // Slightly higher pitch for urgency/clarity
+    utterance.pitch = priority ? 1.2 : 1.0; // Higher pitch for urgency
 
     this.synth.speak(utterance);
     this.currentUtterance = utterance;
   }
 };
 
+// =============================================
+// AI Voice Assistant (Speech Recognition)
+// =============================================
+const VoiceAssistant = {
+  recognition: null,
+  isListening: false,
+  onResultCallback: null,
+
+  init() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn("Speech Recognition not supported in this browser.");
+      return;
+    }
+
+    this.recognition = new SpeechRecognition();
+    this.recognition.continuous = false;
+    this.recognition.lang = 'en-US';
+    this.recognition.interimResults = false;
+
+    this.recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      if (this.onResultCallback) this.onResultCallback(transcript);
+    };
+
+    this.recognition.onend = () => {
+      this.isListening = false;
+      document.getElementById('voice-overlay').classList.remove('active');
+    };
+
+    this.recognition.onerror = (event) => {
+      console.error("Speech Recognition Error:", event.error);
+      this.stop();
+    };
+  },
+
+  start(callback) {
+    if (!this.recognition) return;
+    this.onResultCallback = callback;
+    try {
+      this.recognition.start();
+      this.isListening = true;
+      document.getElementById('voice-overlay').classList.add('active');
+      document.getElementById('voice-overlay-text').innerText = "Listening...";
+      VoiceNav.speak("I'm listening. Describe the emergency.", true);
+    } catch (e) {
+      console.error("Recognition already started", e);
+    }
+  },
+
+  stop() {
+    if (this.recognition && this.isListening) {
+      this.recognition.stop();
+      this.isListening = false;
+    }
+  }
+};
+
 // Initialize voice on load
 document.addEventListener('DOMContentLoaded', () => {
   VoiceNav.init();
+  VoiceAssistant.init();
 });

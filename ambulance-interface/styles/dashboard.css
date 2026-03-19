@@ -77,6 +77,33 @@
   letter-spacing: 1px;
 }
 
+/* Network Status Indicator Overrides */
+.online-mode {
+  background: rgba(40, 200, 64, 0.1);
+  border-color: rgba(40, 200, 64, 0.2);
+}
+.online-mode .pulse-dot {
+  background-color: #28c840;
+  animation: pulseGreen 2s infinite;
+}
+.online-mode .status-text { color: #28c840; }
+
+.offline-mode {
+  background: rgba(255, 59, 48, 0.1);
+  border-color: rgba(255, 59, 48, 0.2);
+}
+.offline-mode .pulse-dot {
+  background-color: #ff3b30;
+  animation: pulseRedAlert 1.5s infinite;
+}
+.offline-mode .status-text { color: #ff3b30; }
+
+@keyframes pulseGreen {
+  0% { box-shadow: 0 0 0 0 rgba(40, 200, 64, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(40, 200, 64, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(40, 200, 64, 0); }
+}
+
 .icon-toggle {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
@@ -143,6 +170,39 @@
   font-size: 1.3rem;
   color: white;
   font-weight: 600;
+}
+
+/* Custom Dropdown Styling */
+.glass-select {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat, repeat;
+  background-position: right .7em top 50%, 0 0;
+  background-size: .65em auto, 100%;
+  transition: all 0.3s ease;
+  margin-top: 5px;
+}
+
+.glass-select:focus, .glass-select:hover {
+  background-color: rgba(255,255,255,0.1);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 10px rgba(10, 132, 255, 0.3);
+}
+
+.glass-select option {
+  background-color: #1a1a1a;
+  color: #fff;
+  padding: 10px;
 }
 
 /* ETA Box */
@@ -247,4 +307,180 @@
 
 .leaflet-routing-container {
   display: none !important; /* hide default routing UI */
+}
+
+/* Tooltip for Alternative Routes */
+.leaflet-tooltip.alt-route-tooltip {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #444;
+  color: #ccc;
+  font-family: var(--font-primary);
+  font-size: 0.8rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  backdrop-filter: blur(5px);
+}
+.leaflet-tooltip.alt-route-tooltip::before {
+  border-top-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Feature 3: GPS Overlay Styling */
+.map-overlay-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s ease;
+}
+.map-overlay-btn:hover {
+  background: rgba(255,255,255,0.15);
+  transform: scale(1.1);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+.map-overlay-btn.active {
+  background: rgba(10, 132, 255, 0.2);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  box-shadow: 0 0 15px rgba(10, 132, 255, 0.4);
+}
+
+.gps-badge {
+  position: absolute;
+  top: 25px;
+  left: 75px;
+  z-index: 1000;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(5px);
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  font-family: var(--font-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.gps-badge.live {
+  border-color: #28c840;
+  color: #28c840;
+  background: rgba(40, 200, 64, 0.1);
+}
+.gps-badge.live .pulse-dot {
+  background-color: #28c840;
+  animation: pulseGreen 1.5s infinite;
+}
+
+/* =============================================
+   V2X Traffic Light HUD Overlay
+   ============================================= */
+.tl-box {
+  background: #111;
+  border: 1.5px solid #444;
+  border-radius: 4px;
+  width: 14px;
+  height: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: 3px 0;
+  box-shadow: 0 0 10px rgba(0,0,0,0.8);
+}
+.tl-bulb {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #222;
+}
+.tl-box.red-active .tl-red { background: #ff3b30; box-shadow: 0 0 10px #ff3b30; }
+.tl-box.green-active .tl-green { background: #28c840; box-shadow: 0 0 10px #28c840; }
+
+/* V2X Radio Ripple Animation */
+@keyframes v2xRipple {
+  0% { transform: scale(0.5); opacity: 0.8; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.v2x-pulse {
+  border: 2px solid var(--accent-blue);
+  background: rgba(10, 132, 255, 0.1);
+  border-radius: 50%;
+  position: absolute;
+  pointer-events: none;
+  animation: v2xRipple 1.5s ease-out infinite;
+}
+
+/* =============================================
+   Traffic Sync Additions
+   ============================================= */
+
+/* Alert status bar below the action buttons */
+.sync-status-bar {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  animation: slideUpToast 0.3s ease forwards;
+}
+
+.sync-status-bar.visible {
+  display: flex;
+}
+
+.sync-status-bar.info {
+  background: rgba(10, 132, 255, 0.15);
+  border: 1px solid rgba(10, 132, 255, 0.4);
+  color: #7ec8ff;
+}
+
+.sync-status-bar.success {
+  background: rgba(40, 200, 64, 0.15);
+  border: 1px solid rgba(40, 200, 64, 0.4);
+  color: #80ffaa;
+}
+
+.sync-status-bar.danger {
+  background: rgba(255, 59, 48, 0.15);
+  border: 1px solid rgba(255, 59, 48, 0.4);
+  color: #ff9a9a;
+}
+
+/* Pulsing ambulance signal dot */
+.signal-ping {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  animation: pulseBlue 1s infinite;
+  flex-shrink: 0;
+}
+
+.signal-ping.danger {
+  background: var(--accent-red);
+  animation: pulseRedAlert 1s infinite;
+}
+
+@keyframes pulseRedAlert {
+  0%  { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
+  100%{ box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
 }

@@ -1,0 +1,172 @@
+/* ==========================================================================
+   Police Dashboard Animations
+   ========================================================================== */
+
+@keyframes blinkFast {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.blink-text {
+  animation: blinkFast 0.8s infinite alternate;
+}
+
+@keyframes staticScroll {
+  from { background-position: 0 0; }
+  to { background-position: 0 100px; }
+}
+
+@keyframes barGraph {
+  0% { transform: scaleY(0.8); }
+  50% { transform: scaleY(1.2); }
+  100% { transform: scaleY(0.9); }
+}
+
+/* Loading Screen Radar */
+#loading-screen {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: #020617;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.6s ease;
+}
+
+#loading-screen:not(.active) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.radar-container {
+  position: relative;
+  width: 150px; height: 150px;
+  background: rgba(14, 165, 233, 0.05);
+  border-radius: 50%;
+  border: 2px solid rgba(14, 165, 233, 0.3);
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+
+.radar-container::after {
+  content: '';
+  position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: rgba(14,165,233,0.3);
+}
+
+.radar-container::before {
+  content: '';
+  position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(14,165,233,0.3);
+}
+
+.radar-sweep {
+  position: absolute;
+  top: 0; left: 50%; width: 50%; height: 50%;
+  background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.8));
+  transform-origin: bottom left;
+  animation: radarSpin 2s linear infinite;
+}
+
+.target-blip {
+  position: absolute;
+  top: 30%; right: 30%;
+  width: 6px; height: 6px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #fff, 0 0 20px var(--neon-blue);
+  animation: blipFade 2s infinite;
+}
+
+@keyframes radarSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes blipFade {
+  0%, 15% { opacity: 0; transform: scale(0.5); }
+  20% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+.loading-text {
+  font-family: var(--font-display);
+  color: var(--neon-blue);
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+.dots { animation: dotsAnim 1.5s steps(4, end) infinite; display: inline-block; width: 20px; text-align: left;}
+@keyframes dotsAnim { from { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } 100% { content: '...'; } }
+
+.loading-bar { width: 300px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+.loading-progress { height: 100%; background: var(--neon-blue); width: 0; animation: progressFill 1.5s ease-in-out forwards; }
+@keyframes progressFill { to { width: 100%; } }
+
+/* Toast Notifications */
+#toast-container {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 2000;
+}
+
+.toast {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--neon-blue);
+  border-left: 4px solid var(--neon-blue);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 4px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  animation: slideDownToast 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes slideDownToast {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.toast.fade-out {
+  animation: fadeOutToast 0.4s forwards;
+}
+
+@keyframes fadeOutToast {
+  to { opacity: 0; transform: translateY(-10px) scale(0.95); }
+}
+
+/* Map specific ripple animation */
+.ripple-marker {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--neon-blue);
+  animation: rippleExpand 1.5s ease-out infinite;
+}
+
+@keyframes rippleExpand {
+  0% { transform: scale(0.1); opacity: 1; }
+  100% { transform: scale(3); opacity: 0; border-color: rgba(14, 165, 233, 0); }
+}
+
+/* Signal Path animation Mock */
+.comms-line-anim {
+  stroke-dasharray: 10, 20;
+  animation: flowAnim 1s linear infinite;
+}
+
+@keyframes flowAnim {
+  to { stroke-dashoffset: -30; }
+}

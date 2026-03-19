@@ -42,9 +42,32 @@
           <i class="fa-solid fa-ambulance"></i>
           <input type="text" id="ambulance-id" placeholder="Enter Ambulance ID e.g., AMB-101" autocomplete="off" />
         </div>
+        <div class="input-group" style="margin-top:-10px;">
+          <i class="fa-solid fa-notes-medical"></i>
+          <input type="text" id="emergency-desc" placeholder="Describe emergency e.g., 'Severe Burns'" autocomplete="off" />
+          <button id="voice-assistant-btn" class="mic-btn" title="Speak to AI Assistant">
+            <i class="fa-solid fa-microphone"></i>
+          </button>
+        </div>
+
+        <div class="quick-chips">
+          <button class="chip" data-case="Severe Burns"><i class="fa-solid fa-fire"></i> Burns</button>
+          <button class="chip" data-case="Cardiac Arrest"><i class="fa-solid fa-heart-pulse"></i> Cardiac</button>
+          <button class="chip" data-case="Road Accident"><i class="fa-solid fa-car-burst"></i> Accident</button>
+        </div>
+
         <button id="start-btn" class="primary-btn pulse-glow">
           Start Emergency <i class="fa-solid fa-arrow-right"></i>
         </button>
+      </div>
+    </div>
+
+    <!-- Voice Assistant Overlay -->
+    <div id="voice-overlay">
+      <div class="voice-orb"></div>
+      <div class="voice-text" id="voice-overlay-text">Listening...</div>
+      <div class="voice-wave">
+        <span></span><span></span><span></span><span></span><span></span>
       </div>
     </div>
   </section>
@@ -83,15 +106,30 @@
     <!-- Left Map Section -->
     <div class="map-container" id="map">
       <!-- Leaflet map injected here -->
+
+      <!-- Feature 3: GPS Toggle -->
+      <button id="locate-me-btn" class="map-overlay-btn" title="Toggle Live GPS Location">
+        <i class="fa-solid fa-location-crosshairs"></i>
+      </button>
+
+      <div id="gps-status-badge" class="gps-badge">
+        <span class="pulse-dot"></span> SIMULATION MODE
+      </div>
     </div>
 
     <!-- Right Panel: Glass UI -->
     <div class="glass-panel dashboard-panel">
       
       <div class="panel-header">
-        <div class="status-indicator">
-          <div class="pulse-dot"></div>
-          <span class="status-text">Live Tracking</span>
+        <div style="display: flex; gap: 15px;">
+          <div class="status-indicator">
+            <div class="pulse-dot"></div>
+            <span class="status-text">Live Tracking</span>
+          </div>
+          <div id="network-status" class="status-indicator online-mode">
+            <div class="pulse-dot" id="network-dot"></div>
+            <span class="status-text" id="network-text">ONLINE</span>
+          </div>
         </div>
         <button id="voice-toggle" class="icon-toggle active" title="Disable Voice Navigation">
           <i class="fa-solid fa-volume-high"></i>
@@ -113,8 +151,16 @@
       <div class="info-module target-hospital">
         <h3>Destination</h3>
         <div class="info-row">
-          <span class="info-label"><i class="fa-solid fa-square-h"></i> Nearest Hospital:</span>
-          <span class="info-value text-accent" id="display-hospital">City General Hospital</span>
+          <span class="info-label"><i class="fa-solid fa-square-h"></i> Destination Hospital:</span>
+          <select id="hospital-dropdown" class="glass-select">
+            <option value="city_general">City General Hospital (Default)</option>
+            <option value="mercy_care">Mercy Care Center</option>
+            <option value="metro_health">Metro Health Hub</option>
+          </select>
+        </div>
+        <div class="info-row" id="hospital-phone-row" style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
+          <span class="info-label"><i class="fa-solid fa-phone-volume"></i> Emergency Contact:</span>
+          <span class="info-value text-accent" id="display-hospital-phone">+91 0000 0000</span>
         </div>
         <div class="eta-box">
           <div class="eta-label">Estimated Time of Arrival</div>
@@ -126,6 +172,9 @@
         <button id="alert-button" class="danger-btn slide-hover">
           <i class="fa-solid fa-triangle-exclamation"></i> Send Traffic Alert
         </button>
+        <div id="sync-status-bar" class="sync-status-bar">
+          <span class="signal-ping"></span> Waiting for emergency events...
+        </div>
       </div>
 
     </div>

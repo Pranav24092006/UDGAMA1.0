@@ -82,12 +82,49 @@ app.post("/store-route", (req, res) => {
 // -------------------------------
 app.post("/report-jam", (req, res) => {
   const { ambulanceId, jamPoint } = req.body;
-  
   if (activeAmbulances[ambulanceId]) {
     activeAmbulances[ambulanceId].jam = jamPoint;
-    console.log(`🚨 TRAFFIC JAM REPORTED: Unit ${ambulanceId} at ${jamPoint.lat}, ${jamPoint.lng}`);
   }
   res.json({ message: "Jam registered" });
+});
+
+// -------------------------------
+// Tactical Button Actions
+// -------------------------------
+app.post("/manual-clear", (req, res) => {
+  const { ambulanceId } = req.body;
+  if (activeAmbulances[ambulanceId]) {
+    activeAmbulances[ambulanceId].tacticalAction = "MANUAL_CLEAR";
+    console.log(`✅ Manual route clear ordered for: ${ambulanceId}`);
+  }
+  res.json({ message: "Manual clear ordered" });
+});
+
+app.post("/block-intersection", (req, res) => {
+  const { ambulanceId } = req.body;
+  if (activeAmbulances[ambulanceId]) {
+    activeAmbulances[ambulanceId].tacticalAction = "INTERSECTION_BLOCKED";
+    console.log(`🚧 Intersection blocked for: ${ambulanceId}`);
+  }
+  res.json({ message: "Intersection blocked" });
+});
+
+app.post("/alert-units", (req, res) => {
+  const { ambulanceId } = req.body;
+  if (activeAmbulances[ambulanceId]) {
+    activeAmbulances[ambulanceId].tacticalAction = "UNITS_ALERTED";
+    console.log(`📢 Nearby units alerted for: ${ambulanceId}`);
+  }
+  res.json({ message: "Units alerted" });
+});
+
+// Acknowledge (clear) the tactical action after ambulance reads it
+app.post("/ack-tactical", (req, res) => {
+  const { ambulanceId } = req.body;
+  if (activeAmbulances[ambulanceId]) {
+    activeAmbulances[ambulanceId].tacticalAction = null;
+  }
+  res.json({ message: "Acknowledged" });
 });
 
 
@@ -95,9 +132,7 @@ app.post("/update-location", (req, res) => {
   const { ambulanceId, lat, lng } = req.body;
 
   if (!ambulanceId || lat === undefined || lng === undefined) {
-    return res.status(400).json({
-      error: "ambulanceId, lat and lng are required",
-    });
+    return res.status(400).json({ error: "Missing required fields" });
   }
 
   if (!activeAmbulances[ambulanceId]) {
@@ -106,6 +141,7 @@ app.post("/update-location", (req, res) => {
       destinationHospital: "Unknown",
       location: { lat, lng },
       status: "ACTIVE",
+      jam: null,
       updatedAt: new Date().toISOString(),
     };
   } else {
@@ -113,14 +149,27 @@ app.post("/update-location", (req, res) => {
     activeAmbulances[ambulanceId].updatedAt = new Date().toISOString();
   }
 
-  console.log(
-    `📍 Location update: ${ambulanceId} → (${lat}, ${lng})`
-  );
+  res.json({ message: "Location updated", ambulance: activeAmbulances[ambulanceId] });
+});
 
-  res.json({
-    message: "Location updated successfully",
-    ambulance: activeAmbulances[ambulanceId],
-  });
+// -------------------------------
+// Dispatch Police & Clear Route
+// -------------------------------
+app.post("/dispatch-police", (req, res) => {
+  const { ambulanceId } = req.body;
+  if (activeAmbulances[ambulanceId]) {
+    activeAmbulances[ambulanceId].status = "DISPATCHED";
+  }
+  res.json({ message: "Police dispatched" });
+});
+
+app.post("/clear-route", (req, res) => {
+  const { ambulanceId } = req.body;
+  if (activeAmbulances[ambulanceId]) {
+    activeAmbulances[ambulanceId].status = "CLEARED";
+    activeAmbulances[ambulanceId].jam = null;
+  }
+  res.json({ message: "Route cleared" });
 });
 
 // -------------------------------
