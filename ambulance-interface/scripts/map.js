@@ -25,6 +25,8 @@ const MapManager = {
 
   // Hospital proximity flag
   hospitalAlerted: false,
+  trafficProximityAlerted: false, 
+  osrmDuration: 8, // Store the initial duration estimate
 
   // Feature 2: V2X Lights
   trafficLightNodes: [],
@@ -126,22 +128,23 @@ const MapManager = {
     setInterval(async () => {
       if (!window.currentAmbulanceId || !navigator.onLine) return;
       try {
-        const res = await fetch(`http://localhost:5000/ambulance-location?ambulanceId=${window.currentAmbulanceId}`);
+        const res = await fetch(`${window.location.origin}/ambulance-location?ambulanceId=${window.currentAmbulanceId}`);
         if (res.ok) {
           const data = await res.json();
+          const amb = data; // backend returns the object directly or in a wrap depending on endpoint
 
           // --- Dispatch/Clear status ---
-          if (data.status === 'DISPATCHED' && !this.policeDispatched) {
+          if (amb.status === 'DISPATCHED' && !this.policeDispatched) {
             this.onPoliceDispatched();
-          } else if (data.status === 'CLEARED' && this.trafficCoords.length > 0 && !this.trafficClearing) {
+          } else if (amb.status === 'CLEARED' && this.trafficCoords.length > 0 && !this.trafficClearing) {
             this.startRouteClearingAnimation();
           }
 
           // --- Tactical action from police buttons ---
-          if (data.tacticalAction) {
-            this.handleTacticalAction(data.tacticalAction);
+          if (amb.tacticalAction) {
+            this.handleTacticalAction(amb.tacticalAction);
             // Acknowledge immediately so it fires only once
-            fetch('http://localhost:5000/ack-tactical', {
+            fetch(`${window.location.origin}/ack-tactical`, {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ ambulanceId: window.currentAmbulanceId })
             }).catch(() => {});
@@ -169,6 +172,9 @@ const MapManager = {
       this.startCoord = [12.9716, 77.5946];
       if (this.demoHospitals) {
         this.hospitals = JSON.parse(JSON.stringify(this.demoHospitals));
+        // Reset to first simulation hospital
+        const firstId = Object.keys(this.hospitals)[0];
+        this.hospitalCoord = this.hospitals[firstId].coords;
         this.updateHospitalUI();
       }
       
@@ -201,9 +207,9 @@ const MapManager = {
 
       this.startCoord = [pos.coords.latitude, pos.coords.longitude];
       
-      // Move marker immediately
+      // Move marker immediately and center map
       if (this.marker) this.marker.setLatLng(this.startCoord);
-      this.map.panTo(this.startCoord);
+      this.map.setView(this.startCoord, 14);
 
       // Backup demo hospitals if first time
       if (!this.demoHospitals) this.demoHospitals = JSON.parse(JSON.stringify(this.hospitals));
@@ -237,18 +243,28 @@ const MapManager = {
   },
 
   async fetchNearbyHospitals(lat, lng) {
-    const query = `[out:json];node(around:5000,${lat},${lng})[amenity=hospital];out 3;`;
-    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    // Try 10km radius first, then fallback to 25km if none found
+    let radius = 10000;
+    let query = `[out:json];node(around:${radius},${lat},${lng})[amenity=hospital];out 3;`;
+    let url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
     
     try {
-      const res = await fetch(url);
-      const data = await res.json();
+      let res = await fetch(url);
+      let data = await res.json();
       
+      if (!data.elements || data.elements.length === 0) {
+          // Expanded search
+          radius = 25000;
+          query = `[out:json];node(around:${radius},${lat},${lng})[amenity=hospital];out 3;`;
+          url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+          res = await fetch(url);
+          data = await res.json();
+      }
+
       if (data.elements && data.elements.length > 0) {
         // Build new hospital dictionary
         const newHospitals = {};
         data.elements.forEach((el, idx) => {
-          const id = `live_hosp_${idx}`;
           const h = el.tags;
           const phone = h.phone || h['contact:phone'] || '+91-0000-0000';
           newHospitals[el.id] = {
@@ -266,13 +282,40 @@ const MapManager = {
         showToast(`<i class="fa-solid fa-square-h"></i> Found ${data.elements.length} real hospitals nearby.`, 'info');
         return true;
       } else {
-        showToast('No real hospitals found nearby. Using Simulation Data.', 'warning');
-        return false;
+        // ULTIMATE FALLBACK: Generate a local simulated hospital if Overpass fails/finds nothing
+        // This prevents the "Bangalore Routing" bug if search fails.
+        const fallbackLat = lat + 0.015; // ~1.6km North
+        const fallbackLng = lng + 0.015; // ~1.6km East
+        
+        this.hospitals = {
+          'sim_local': {
+            name: 'Local Emergency Center (Simulated)',
+            coords: [fallbackLat, fallbackLng],
+            phone: '+91-9999-8888'
+          }
+        };
+        this.hospitalCoord = [fallbackLat, fallbackLng];
+        this.updateHospitalUI();
+        
+        showToast('No real hospitals found within 25km. Using Local Simulated Center.', 'warning');
+        return true; // Return true so toggleGPS continues with these local coords
       }
     } catch (err) {
       console.error("Overpass Error:", err);
-      showToast('Failed to reach OpenStreetMap. Using Simulation Data.', 'warning');
-      return false;
+      // Fallback on error too
+      const fallbackLat = lat + 0.012;
+      const fallbackLng = lng - 0.012;
+      this.hospitals = {
+          'sim_error_local': {
+            name: 'Nearby Medical Facility (Fallback)',
+            coords: [fallbackLat, fallbackLng],
+            phone: '+91-101'
+          }
+      };
+      this.hospitalCoord = [fallbackLat, fallbackLng];
+      this.updateHospitalUI();
+      showToast('Network error finding hospitals. Using Local Fallback.', 'warning');
+      return true;
     }
   },
 
@@ -310,6 +353,8 @@ const MapManager = {
     this.trafficCoords = [];
     this.policeDispatched = false;
     this.trafficClearing = false;
+    this.hospitalAlerted = false;
+    this.trafficProximityAlerted = false; // Reset proximity flag
     clearInterval(this.movementTimer);
     if (this.trafficLayer) { this.map.removeLayer(this.trafficLayer); this.trafficLayer = null; }
     if (this.routePolyline) { this.map.removeLayer(this.routePolyline); this.routePolyline = null; }
@@ -338,109 +383,138 @@ const MapManager = {
   },
 
   async fetchRoute() {
-    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${this.startCoord[1]},${this.startCoord[0]};${this.hospitalCoord[1]},${this.hospitalCoord[0]}?overview=full&geometries=geojson&alternatives=3`;
-    try {
-      const res = await fetch(osrmUrl);
-      const data = await res.json();
-      if (data.code === 'Ok' && data.routes.length > 0) {
-        
-        // Feature 4: Draw alternative routes first (background)
-        this.altRouteLayers.forEach(l => this.map.removeLayer(l));
-        this.altRouteLayers = [];
-        if (data.routes.length > 1) {
-          for (let i = 1; i < data.routes.length; i++) {
-            const altCoords = data.routes[i].geometry.coordinates.map(c => [c[1], c[0]]);
-            const altLine = L.polyline(altCoords, {
-              color: '#888',
-              weight: 3,
-              opacity: 0.4,
-              dashArray: '5, 10'
-            }).bindTooltip("Alternative (Slower) Route", { sticky: true, className: "alt-route-tooltip" }).addTo(this.map);
-            this.altRouteLayers.push(altLine);
-          }
+    this.resetMovement();
+    showToast("Generating Emergency Route...", "info");
+
+    // Priority: use this.startCoord as the definitive starting point
+    const start = L.latLng(this.startCoord[0], this.startCoord[1]);
+    const urls = [
+      `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${this.hospitalCoord[1]},${this.hospitalCoord[0]}?overview=full&geometries=geojson&alternatives=3`,
+      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${start.lng},${start.lat};${this.hospitalCoord[1]},${this.hospitalCoord[0]}?overview=full&geometries=geojson&alternatives=3`
+    ];
+
+    let data = null;
+    let durationMin = 8;
+
+    for (const url of urls) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (json.code === 'Ok' && json.routes.length > 0) {
+          data = json;
+          break;
         }
-
-        const route = data.routes[0];
-        this.allCoords = route.geometry.coordinates.map(c => [c[1], c[0]]);
-
-        // Draw base route polyline
-        this.routePolyline = L.polyline(this.allCoords, {
-          color: '#0a84ff',
-          weight: 5,
-          opacity: 0.7,
-          lineJoin: 'round',
-          dashArray: '10, 10'
-        }).addTo(this.map);
-
-        // Feature 2: Generate V2X Traffic Lights HUD
-        this.trafficLightNodes.forEach(node => this.map.removeLayer(node.marker));
-        this.trafficLightNodes = [];
-
-        const numLights = 4;
-        const step = Math.floor(this.allCoords.length / (numLights + 1));
-        if (step > 0) {
-          for (let i = 1; i <= numLights; i++) {
-            const idx = i * step;
-            if (idx < this.allCoords.length) {
-              const coord = this.allCoords[idx];
-              const icon = L.divIcon({
-                className: 'custom-div-icon',
-                html: `<div class="tl-box red-active"><div class="tl-bulb tl-red"></div><div class="tl-bulb tl-yellow"></div><div class="tl-bulb tl-green"></div></div>`,
-                iconSize: [14, 32],
-                iconAnchor: [7, 16]
-              });
-              const marker = L.marker(coord, { icon: icon }).addTo(this.map);
-              this.trafficLightNodes.push({ marker, latlng: L.latLng(coord), triggered: false });
-            }
-          }
-        }
-
-        // Store route in backend
-        if (window.currentAmbulanceId) {
-          fetch(`${window.location.origin}/store-route`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ambulanceId: window.currentAmbulanceId, route: this.allCoords })
-          }).catch(e => {});
-        }
-
-        this.map.fitBounds(this.routePolyline.getBounds(), { padding: [50, 50] });
-
-        // Update ETA
-        const durationMin = Math.ceil(route.duration / 60);
-        const etaEl = document.getElementById('display-eta');
-        if (etaEl) etaEl.innerText = `${durationMin < 10 ? '0' + durationMin : durationMin} Min`;
-
-        // Initial voice
-        setTimeout(() => {
-          const hName = this.hospitals[Object.keys(this.hospitals).find(k => JSON.stringify(this.hospitals[k].coords) === JSON.stringify(this.hospitalCoord))]?.name || "the hospital";
-          VoiceNav.speak(`Emergency route generated. Estimated time to ${hName}: ${durationMin} minutes.`);
-        }, 1500);
-
-        // Start movement
-        this.simulateMovement();
-
-        // Spawn traffic congestion after 5 seconds (demo drama)
-        setTimeout(() => this.spawnTrafficCongestion(), 5000);
+      } catch (err) {
+        console.warn("Routing server failed, trying next...", url);
       }
-    } catch (err) {
-      console.error('Routing error:', err);
     }
+
+    if (data) {
+      // Success Path: OSRM Route found
+      this.altRouteLayers.forEach(l => this.map.removeLayer(l));
+      this.altRouteLayers = [];
+      if (data.routes.length > 1) {
+        for (let i = 1; i < data.routes.length; i++) {
+          const altCoords = data.routes[i].geometry.coordinates.map(c => [c[1], c[0]]);
+          const altLine = L.polyline(altCoords, { color: '#888', weight: 3, opacity: 0.4, dashArray: '5, 10' }).addTo(this.map);
+          this.altRouteLayers.push(altLine);
+        }
+      }
+
+      const route = data.routes[0];
+      durationMin = Math.ceil(route.duration / 60);
+      this.osrmDuration = durationMin; // Store for dynamic calculation
+      this.allCoords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+
+      if (this.routePolyline) {
+        this.routePolyline.setLatLngs(this.allCoords);
+        this.routePolyline.setStyle({ color: '#0a84ff', dashArray: null, opacity: 0.8 });
+      } else {
+        this.routePolyline = L.polyline(this.allCoords, { color: '#0a84ff', weight: 5, opacity: 0.8 }).addTo(this.map);
+      }
+      console.log("Route acquired from OSRM.", this.allCoords.length, "points");
+      VoiceNav.speak(`Emergency route generated. Estimated time: ${durationMin} minutes.`);
+    } else {
+      // Fallback Path: Straight line displacement
+      console.error("All routing servers failed. Using displacement fallback.");
+      showToast("⚠️ Service Offline - Using Fallback Route", "warning");
+
+      const s = [start.lat, start.lng];
+      this.allCoords = [];
+      const steps = 120;
+      for (let i = 0; i <= steps; i++) {
+        const lat = s[0] + (this.hospitalCoord[0] - s[0]) * (i / steps);
+        const lng = s[1] + (this.hospitalCoord[1] - s[1]) * (i / steps);
+        this.allCoords.push([lat, lng]);
+      }
+
+      if (this.routePolyline) {
+        this.routePolyline.setLatLngs(this.allCoords);
+        this.routePolyline.setStyle({ color: '#ff9500', dashArray: '5, 10', opacity: 0.8 });
+      } else {
+        this.routePolyline = L.polyline(this.allCoords, { color: '#ff9500', weight: 6, opacity: 0.8, dashArray: '5, 10' }).addTo(this.map);
+      }
+      durationMin = 12;
+      console.log("Starting fallback simulation...", this.allCoords.length, "points");
+    }
+
+    // Common Steps (V2X, UI, Movement)
+    this.trafficLightNodes.forEach(node => this.map.removeLayer(node.marker));
+    this.trafficLightNodes = [];
+    const numLights = 4;
+    const step = Math.floor(this.allCoords.length / (numLights + 1));
+    if (step > 0) {
+      for (let i = 1; i <= numLights; i++) {
+        const idx = i * step;
+        const coord = this.allCoords[idx];
+        const icon = L.divIcon({
+          className: 'custom-div-icon',
+          html: `<div class="tl-box red-active"><div class="tl-bulb tl-red"></div><div class="tl-bulb tl-yellow"></div><div class="tl-bulb tl-green"></div></div>`,
+          iconSize: [14, 32], iconAnchor: [7, 16]
+        });
+        const marker = L.marker(coord, { icon: icon }).addTo(this.map);
+        this.trafficLightNodes.push({ marker, latlng: L.latLng(coord), triggered: false });
+      }
+    }
+
+    if (window.currentAmbulanceId) {
+      fetch(`${window.location.origin}/store-route`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ambulanceId: window.currentAmbulanceId, route: this.allCoords })
+      }).catch(e => {});
+    }
+
+    this.map.fitBounds(this.routePolyline.getBounds(), { padding: [50, 50] });
+
+    const etaText = `${durationMin < 10 ? '0' + durationMin : durationMin} Min`;
+    if (document.getElementById('display-eta')) document.getElementById('display-eta').innerText = etaText;
+    if (document.getElementById('map-eta-val')) document.getElementById('map-eta-val').innerText = etaText;
+
+    this.simulateMovement();
+    setTimeout(() => this.spawnTrafficCongestion(), 5000);
   },
 
   simulateMovement() {
+    if (this.movementTimer) clearInterval(this.movementTimer);
     this.movementTimer = setInterval(() => {
-      if (this.currentIndex >= this.allCoords.length) {
+      try {
+        const idx = Math.floor(this.currentIndex);
+      if (idx >= this.allCoords.length) {
         clearInterval(this.movementTimer);
-        VoiceNav.speak("You have arrived at your destination.", true);
+        this.movementTimer = null;
+        console.log("Ambulance reached destination.");
+        VoiceNav.speak("Destination reached. Transitioning to emergency drop-off.", true);
         showToast("🏥 Destination Reached", "success");
         return;
       }
-      const pos = this.allCoords[this.currentIndex];
+      const pos = this.allCoords[idx];
       this.marker.setLatLng(pos);
 
       document.getElementById('display-location').innerText = `${pos[0].toFixed(4)}, ${pos[1].toFixed(4)}`;
 
-      if (this.currentIndex % 5 === 0) {
+      const currentIdxFloor = Math.floor(this.currentIndex);
+      if (currentIdxFloor % 5 === 0) {
         this.map.panTo(pos, { animate: true, duration: 2 });
       }
 
@@ -464,11 +538,20 @@ const MapManager = {
         }
       });
 
-      // Check distance to congestion zone
+      // Traffic Proximity & Clearing Logic
       if (this.trafficCoords.length > 0 && !this.trafficClearing) {
         const congestionStart = L.latLng(this.trafficCoords[0]);
         const ambPos = L.latLng(pos);
         const dist = ambPos.distanceTo(congestionStart);
+
+        // Proximity Voice Alert (approx 500m)
+        if (dist < 600 && dist > 400 && !this.trafficProximityAlerted) {
+          this.trafficProximityAlerted = true;
+          const clearingTime = 30 + Math.floor(Math.random() * 15);
+          VoiceNav.speak(`Approaching heavy traffic congestion in 500 meters. Tactical clearing requested. Estimated room to maneuver will be available in approximately ${clearingTime} seconds once the team is on site.`, true);
+          showToast(`<i class="fa-solid fa-bullhorn"></i> Traffic Alert: ~${clearingTime}s to Clear`, 'warning');
+        }
+
         if (dist < 300 && this.policeDispatched) {
           this.startRouteClearingAnimation();
         }
@@ -476,23 +559,64 @@ const MapManager = {
 
       // POST location to server
       if (window.currentAmbulanceId && navigator.onLine) {
+        // Refined Dynamic ETA Calculation
+        const currentIdxFloor = Math.floor(this.currentIndex);
+        const remainingNodes = this.allCoords.length - currentIdxFloor;
+        const totalNodes = this.allCoords.length || 100;
+        
+        let speedFactor = 1.0;
+        if (this.trafficLayer && !this.trafficClearing) {
+          // Slow down ETA decrease (or slightly increase) when in traffic
+          speedFactor = 0.5; 
+        } else if (this.trafficClearing) {
+          // Accelerate when clearing
+          speedFactor = 1.5;
+        }
+
+        // Use stored initial duration (or 8 min default)
+        const baseDuration = this.osrmDuration || 8; 
+        const currentEta = Math.max(1, Math.ceil((remainingNodes / (totalNodes * speedFactor)) * baseDuration));
+        const etaText = `${currentEta < 10 ? '0' + currentEta : currentEta} Min`;
+        
+        // Update local UI
+        const etaEl = document.getElementById('display-eta');
+        if (etaEl) etaEl.innerText = etaText;
+        
+        const mapEtaVal = document.getElementById('map-eta-val');
+        if (mapEtaVal) mapEtaVal.innerText = etaText;
+
         fetch(`${window.location.origin}/update-location`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ambulanceId: window.currentAmbulanceId, lat: pos[0], lng: pos[1] })
+          body: JSON.stringify({ 
+            ambulanceId: window.currentAmbulanceId, 
+            lat: pos[0], 
+            lng: pos[1],
+            eta: etaText
+          })
         })
         .then(r => r.json())
         .then(res => {
            if (typeof setSyncStatus === 'function') setSyncStatus("Telemetry Synced with Command Center", "success");
            
-           const amb = res.ambulance;
-           if (amb) {
-             if (amb.status === 'DISPATCHED' && !this.policeDispatched) {
-               this.onPoliceDispatched();
-             }
-             if (amb.status === 'CLEARED' && !this.trafficClearing && this.trafficLayer) {
-               this.startRouteClearingAnimation();
-             }
-           }
+            const amb = res.ambulance;
+            if (amb) {
+              // Tactical Sync: Handle actions from Police Dashboard
+              if (amb.tacticalAction) {
+                this.handleTacticalAction(amb.tacticalAction);
+                // Acknowledge immediately
+                fetch(`${window.location.origin}/ack-tactical`, {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ ambulanceId: window.currentAmbulanceId })
+                }).catch(e => {});
+              }
+
+              if (amb.status === 'DISPATCHED' && !this.policeDispatched) {
+                this.onPoliceDispatched();
+              }
+              if (amb.status === 'CLEARED' && !this.trafficClearing && this.trafficLayer) {
+                this.startRouteClearingAnimation();
+              }
+            }
         })
         .catch(e => {
            if (typeof setSyncStatus === 'function') setSyncStatus("Connection Lost: Server Unreachable", "danger");
@@ -509,15 +633,25 @@ const MapManager = {
         setTimeout(() => VoiceNav.speak("You are approaching the hospital. Prepare for arrival.", true), 500);
       }
 
-      this.currentIndex++;
+        // Dynamic Movement Speed
+        let increment = 1;
+        if (this.trafficLayer && !this.trafficClearing) {
+          increment = 0.5; // Slow crawl in traffic
+        } else if (this.trafficClearing) {
+          increment = 2.0; // Speed up when cleared
+        }
+        this.currentIndex += increment;
+      } catch (err) {
+        console.error("Critical Movement Error:", err);
+      }
     }, 1500);
   },
 
   spawnTrafficCongestion() {
-    if (this.allCoords.length < 10) return;
+    if (this.allCoords.length < 10 || this.trafficLayer || this.policeDispatched) return;
     
-    // Congestion segment is ~10 nodes ahead of current ambulance position
-    const spawnStart = Math.min(this.currentIndex + 6, this.allCoords.length - 10);
+    // Move to roughly the middle of the route for demo convenience
+    const spawnStart = Math.floor(this.allCoords.length / 2);
     const spawnEnd   = Math.min(spawnStart + 8, this.allCoords.length - 1);
     
     this.congestionSpawnIndex = spawnStart;
@@ -550,7 +684,6 @@ const MapManager = {
     }
   },
 
-  // When police have dispatched, watch ambulance and start clearing
   onPoliceDispatched() {
     this.policeDispatched = true;
     setSyncStatus("Police team dispatched. Clearing route…", "info");

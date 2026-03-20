@@ -27,11 +27,12 @@
   <!-- =============================== -->
   <section id="landing-page" class="active">
     <div class="overlay"></div>
+    <div class="light-follower"></div>
     <div class="stars"></div>
     <div class="glowing-orb orb-1"></div>
     <div class="glowing-orb orb-2"></div>
 
-    <div class="landing-content">
+    <div class="landing-content" id="magnetic-area">
       <h1 class="project-title">
         <span class="title-highlight">Smart</span> Ambulance <br/>Coordination System
       </h1>
@@ -112,6 +113,12 @@
         <i class="fa-solid fa-location-crosshairs"></i>
       </button>
 
+      <!-- Map ETA Overlay -->
+      <div id="map-eta-badge" class="map-eta-badge">
+        <span class="label">EST. ARRIVAL</span>
+        <span class="value" id="map-eta-val">08 Min</span>
+      </div>
+
       <div id="gps-status-badge" class="gps-badge">
         <span class="pulse-dot"></span> SIMULATION MODE
       </div>
@@ -145,6 +152,26 @@
         <div class="info-row">
           <span class="info-label"><i class="fa-solid fa-location-dot"></i> Current Location:</span>
           <span class="info-value" id="display-location">Fetching...</span>
+        </div>
+      </div>
+
+      <!-- Patient Vitals Module -->
+      <div class="info-module vitals-monitor">
+        <div class="module-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="margin: 0;"><i class="fa-solid fa-heart-pulse"></i> Patient Vitals</h3>
+          <span class="vitals-status">STABLE</span>
+        </div>
+        <div class="vitals-content">
+          <div class="ecg-container">
+            <svg class="ecg-svg" viewBox="0 0 100 40" preserveAspectRatio="none">
+              <path class="ecg-path" d="M0 20 L5 20 L7 10 L9 30 L11 20 L20 20 L22 5 L24 35 L26 20 L35 20 L37 10 L39 30 L41 20 L50 20 L52 5 L54 35 L56 20 L65 20 L67 10 L69 30 L71 20 L80 20 L82 5 L84 35 L86 20 L100 20" fill="none" stroke="#28c840" stroke-width="0.5" />
+            </svg>
+            <div class="ecg-overlay"></div>
+          </div>
+          <div class="bpm-display">
+            <span class="bpm-value" id="bpm-val">76</span>
+            <span class="bpm-unit">BPM</span>
+          </div>
         </div>
       </div>
 

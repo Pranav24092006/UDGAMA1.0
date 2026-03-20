@@ -137,10 +137,43 @@ document.addEventListener('DOMContentLoaded', () => {
         // Since it's a demo, just pick the first active ambulance
         if (ambulances.length > 0) {
           const amb = ambulances[0];
-          window.currentAmbulanceId = amb.ambulanceId;
           
-          // Clear any 'stale' ghosts once we have fresh signal
-          PoliceMapManager.resetGhostTracking();
+          // Detect new ambulance and reset UI
+          if (amb.ambulanceId !== window.currentAmbulanceId) {
+            console.log("New Ambulance Detected:", amb.ambulanceId);
+            window.currentAmbulanceId = amb.ambulanceId;
+
+            // Reset Dispatch Button
+            const btnDispatch = document.getElementById('btn-dispatch');
+            if (btnDispatch) {
+              btnDispatch.disabled = false;
+              btnDispatch.innerHTML = '<i class="fa-solid fa-truck-fast"></i> DISPATCH TACTICAL TEAM';
+              btnDispatch.style.background = '';
+              btnDispatch.style.borderColor = '';
+              btnDispatch.style.color = '';
+              btnDispatch.style.opacity = '1';
+            }
+
+            // Reset Status
+            const statusEl = document.getElementById('emergency-status');
+            if (statusEl) {
+              statusEl.innerText = 'EN ROUTE';
+              statusEl.className = 'stat-value text-blue';
+            }
+
+            // Hide Dispatch Section until new jam
+            const dispatchSection = document.getElementById('dispatch-section');
+            if (dispatchSection) dispatchSection.style.display = 'none';
+
+            // Reset Map
+            PoliceMapManager.resetGhostTracking();
+            PoliceMapManager.clearTraffic();
+            receivedTrafficCoords = [];
+          }
+
+          // Update Active Count
+          const countEl = document.getElementById('active-count');
+          if (countEl) countEl.innerText = ambulances.length < 10 ? '0' + ambulances.length : ambulances.length;
 
           if (amb.location) {
             const age = Date.now() - new Date(amb.updatedAt).getTime();
@@ -153,8 +186,18 @@ document.addEventListener('DOMContentLoaded', () => {
               PoliceMapManager.resetGhostTracking();
             }
           }
+
+          if (amb.eta) {
+            // Update the large ETA countdown
+            const etaTimer = document.getElementById('eta-timer');
+            if (etaTimer) etaTimer.innerText = amb.eta;
+          }
+
           if (amb.destinationHospital) {
-            // Fix: Destination is the 3rd detail row child
+            // Unit ID (usually row 1), Destination (row 2)
+            const unitIdEl = document.querySelector('.tracking-details .detail-row:nth-child(2) .value');
+            if (unitIdEl) unitIdEl.innerText = amb.ambulanceId;
+
             const destEl = document.querySelector('.tracking-details .detail-row:nth-child(3) .value');
             if (destEl) destEl.innerText = amb.destinationHospital;
           }
@@ -192,6 +235,12 @@ function handleTrafficDetected(data) {
 }
 
 function handleAlertPolice(data) {
+  // Prevent spamming if already dispatched or cleared
+  const statusEl = document.getElementById('emergency-status');
+  if (statusEl && (statusEl.innerText === 'DISPATCHED' || statusEl.innerText === 'CLEARED' || statusEl.innerText === '⏳ Clearing...')) {
+    return;
+  }
+
   if (data && data.trafficCoords && data.trafficCoords.length > 0) {
     receivedTrafficCoords = data.trafficCoords;
     // Ensure congestion is highlighted
@@ -201,6 +250,10 @@ function handleAlertPolice(data) {
   // Show the emergency dispatch section
   const dispatchSection = document.getElementById('dispatch-section');
   if (dispatchSection) {
+    // Also check if button is already dispatched
+    const btnDispatch = document.getElementById('btn-dispatch');
+    if (btnDispatch && btnDispatch.innerText.includes('DISPATCHED')) return;
+
     dispatchSection.style.display = 'block';
     dispatchSection.style.animation = 'slideDownToast 0.4s ease forwards';
   }
@@ -209,7 +262,6 @@ function handleAlertPolice(data) {
   showTacticalToast('<i class="fa-solid fa-siren"></i> 🚨 EMERGENCY ALERT: AMBULANCE REQUIRES IMMEDIATE ROUTE CLEARANCE', 'danger');
   
   // Update emergency status to CRITICAL
-  const statusEl = document.getElementById('emergency-status');
   if (statusEl) {
     statusEl.innerText = 'CRITICAL';
     statusEl.className = 'stat-value text-red blink-text';

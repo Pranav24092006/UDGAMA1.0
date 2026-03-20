@@ -129,7 +129,7 @@ app.post("/ack-tactical", (req, res) => {
 
 
 app.post("/update-location", (req, res) => {
-  const { ambulanceId, lat, lng } = req.body;
+  const { ambulanceId, lat, lng, eta } = req.body;
 
   if (!ambulanceId || lat === undefined || lng === undefined) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -140,12 +140,14 @@ app.post("/update-location", (req, res) => {
       ambulanceId,
       destinationHospital: "Unknown",
       location: { lat, lng },
+      eta: eta || "N/A",
       status: "ACTIVE",
       jam: null,
       updatedAt: new Date().toISOString(),
     };
   } else {
     activeAmbulances[ambulanceId].location = { lat, lng };
+    if (eta) activeAmbulances[ambulanceId].eta = eta;
     activeAmbulances[ambulanceId].updatedAt = new Date().toISOString();
   }
 
@@ -190,7 +192,11 @@ app.get("/ambulance-location", (req, res) => {
     return res.json(ambulance);
   }
 
-  res.json(Object.values(activeAmbulances));
+  res.json(Object.values(activeAmbulances).sort((a, b) => {
+    const timeA = new Date(a.updatedAt || a.startedAt || 0).getTime();
+    const timeB = new Date(b.updatedAt || b.startedAt || 0).getTime();
+    return timeB - timeA;
+  }));
 });
 
 // -------------------------------

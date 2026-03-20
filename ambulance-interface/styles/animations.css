@@ -74,10 +74,10 @@
 }
 
 @keyframes driveFast {
-  0% { left: -20%; transform: translateY(-50%) rotate(-1deg); }
-  40% { left: 45%; transform: translateY(-50%) rotate(0deg); }
-  60% { left: 55%; transform: translateY(-50%) rotate(1deg); }
-  100% { left: 120%; transform: translateY(-50%) rotate(0deg); }
+  0% { left: -20%; transform: translateY(-50%) rotate(-1deg) scale(0.9); filter: blur(10px); }
+  35% { left: 45%; transform: translateY(-50%) rotate(0deg) scale(1); filter: blur(0px); }
+  65% { left: 55%; transform: translateY(-50%) rotate(1deg) scale(1.05); filter: blur(0px); }
+  100% { left: 125%; transform: translateY(-50%) rotate(0deg) scale(0.9); filter: blur(15px); }
 }
 
 /* Sirens */

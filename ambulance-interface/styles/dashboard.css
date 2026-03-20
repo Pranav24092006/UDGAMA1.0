@@ -21,24 +21,25 @@
   top: 20px;
   bottom: 20px;
   width: 380px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  box-shadow: var(--glass-shadow);
+  background: rgba(10, 15, 25, 0.6);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  padding: 20px;
   overflow-y: auto;
-  transform: translateX(120%);
-  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  transform: translateX(120%) scale(0.95);
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+  opacity: 0;
 }
 
-/* Make it slide in when active */
 #dashboard-page.active .dashboard-panel {
-  transform: translateX(0);
+  transform: translateX(0) scale(1);
+  opacity: 1;
 }
 
 /* Panel Header */
@@ -123,25 +124,117 @@
 
 /* Info Modules */
 .info-module {
-  background: rgba(0,0,0,0.2);
-  border-radius: 12px;
-  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 14px 18px;
   margin-bottom: 20px;
-  border: 1px solid rgba(255,255,255,0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.info-module::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(0deg, transparent 0%, rgba(255,255,255,0.02) 50%, transparent 100%);
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+/* Vitals Monitor Specifics */
+.vitals-monitor {
+  background: rgba(40, 200, 64, 0.03);
+  border-color: rgba(40, 200, 64, 0.1);
+}
+
+.vitals-status {
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  color: #28c840;
+  background: rgba(40, 200, 64, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.vitals-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.ecg-container {
+  flex: 1;
+  height: 32px;
+  position: relative;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ecg-svg {
+  width: 200%;
+  height: 100%;
+  position: absolute;
+  top: 0; left: 0;
+  animation: ecgScroll 4s linear infinite;
+}
+
+.ecg-path {
+  filter: drop-shadow(0 0 5px rgba(40, 200, 64, 0.6));
+}
+
+.ecg-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(90deg, rgba(10, 15, 25, 1) 0%, transparent 10%, transparent 90%, rgba(10, 15, 25, 1) 100%);
+  pointer-events: none;
+}
+
+.bpm-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.bpm-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #28c840;
+  line-height: 1;
+  text-shadow: 0 0 10px rgba(40, 200, 64, 0.4);
+}
+
+.bpm-unit {
+  font-size: 0.6rem;
+  color: #888;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+@keyframes ecgScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 .info-module h3 {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .info-row {
   display: flex;
-  flex-direction: column;
-  margin-bottom: 15px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .info-row:last-child {
@@ -151,7 +244,9 @@
 .info-label {
   font-size: 0.85rem;
   color: #888;
-  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .info-label i {
@@ -161,15 +256,18 @@
 }
 
 .info-value {
-  font-family: var(--font-secondary);
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #fff;
+  text-align: right;
+  letter-spacing: -0.2px;
 }
 
 .info-value.highlight {
-  font-size: 1.3rem;
-  color: white;
-  font-weight: 600;
+  font-size: 1.25rem;
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(255,255,255,0.1);
 }
 
 /* Custom Dropdown Styling */
@@ -207,26 +305,32 @@
 
 /* ETA Box */
 .eta-box {
-  margin-top: 20px;
-  background: linear-gradient(135deg, rgba(255,59,48,0.1) 0%, rgba(255,59,48,0.05) 100%);
-  border: 1px solid rgba(255,59,48,0.2);
-  border-radius: 10px;
-  padding: 15px;
+  margin-top: 24px;
+  background: linear-gradient(135deg, rgba(255,59,48,0.08) 0%, rgba(255,59,48,0.03) 100%);
+  border: 1px solid rgba(255,59,48,0.15);
+  border-radius: 24px;
+  padding: 20px;
   text-align: center;
+  position: relative;
+  box-shadow: inset 0 0 20px rgba(255, 59, 48, 0.05);
 }
 
 .eta-label {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin-bottom: 5px;
+  font-size: 0.75rem;
+  color: #999;
+  margin-bottom: 8px;
   text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
 }
 
 .eta-time {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--accent-red);
-  text-shadow: 0 0 10px rgba(255,59,48,0.3);
+  font-size: 3rem;
+  font-weight: 800;
+  color: #ff3b30;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+  text-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
 }
 
 /* Action Module */
@@ -483,4 +587,38 @@
   0%  { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
   70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
   100%{ box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+}
+
+/* Map ETA Overlay */
+.map-eta-badge {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1100;
+  background: rgba(10, 15, 25, 0.7);
+  backdrop-filter: blur(20px);
+  padding: 10px 24px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 59, 48, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  min-width: 140px;
+}
+
+.map-eta-badge .label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #999;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.map-eta-badge .value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #ff3b30;
+  text-shadow: 0 0 15px rgba(255, 59, 48, 0.4);
 }

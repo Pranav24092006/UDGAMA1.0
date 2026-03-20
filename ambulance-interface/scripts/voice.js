@@ -43,30 +43,48 @@ const VoiceNav = {
     }
   },
 
+  queue: [],
+  isSpeaking: false,
+
   speak(text, priority = false) {
     if (!this.isEnabled) return;
     
-    // Cancel any ongoing speech if this is priority
-    if (this.synth.speaking && priority) {
+    if (priority) {
       this.synth.cancel();
-    } else if (this.synth.speaking && !priority) {
-      // If currently speaking and new msg is NOT priority, ignore or queue (we just ignore for realism/pacing)
-      return;
+      this.queue = [];
+      this.isSpeaking = false;
     }
 
+    this.queue.push({ text, priority });
+    this.processQueue();
+  },
+
+  processQueue() {
+    if (this.isSpeaking || this.queue.length === 0) return;
+
+    this.isSpeaking = true;
+    const { text, priority } = this.queue.shift();
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Try to find a good English voice
+    // Find preferred voice
     if (this.voices && this.voices.length > 0) {
       const preferredVoice = this.voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
                              this.voices.find(v => v.lang.startsWith('en'));
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
+      if (preferredVoice) utterance.voice = preferredVoice;
     }
 
     utterance.rate = 1.0;
-    utterance.pitch = priority ? 1.2 : 1.0; // Higher pitch for urgency
+    utterance.pitch = priority ? 1.2 : 1.0;
+
+    utterance.onend = () => {
+      this.isSpeaking = false;
+      this.processQueue(); // Play next in queue
+    };
+
+    utterance.onerror = () => {
+      this.isSpeaking = false;
+      this.processQueue();
+    };
 
     this.synth.speak(utterance);
     this.currentUtterance = utterance;

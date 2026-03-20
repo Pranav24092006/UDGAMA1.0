@@ -2,20 +2,21 @@
    Core Variables & Resets
    ========================================================================== */
 :root {
-  --bg-dark: #0a0a0f;
-  --bg-darker: #050508;
+  --bg-dark: #07070a;
+  --bg-darker: #040406;
   --text-primary: #ffffff;
-  --text-secondary: #a0a0b0;
+  --text-secondary: #8a8a9a;
   --accent-red: #ff3b30;
   --accent-red-glow: rgba(255, 59, 48, 0.4);
-  --accent-blue: #0a84ff;
-  --glass-bg: rgba(20, 20, 25, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --accent-blue: #007aff;
+  --glass-bg: rgba(15, 15, 20, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-light: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
   --font-primary: 'Poppins', sans-serif;
   --font-secondary: 'Inter', sans-serif;
-  --transition-fast: 0.2s ease;
-  --transition-smooth: 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -59,23 +60,29 @@ button {
 }
 
 .primary-btn {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, #ff453a, #ff3b30);
   color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
   width: 100%;
-  box-shadow: 0 4px 15px var(--accent-red-glow);
+  box-shadow: 0 10px 25px -5px rgba(255, 59, 48, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  letter-spacing: 0.5px;
 }
 
 .primary-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 59, 48, 0.6);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 30px -5px rgba(255, 59, 48, 0.6);
+  background: linear-gradient(135deg, #ff5e54, #ff453a);
+}
+
+.primary-btn:active {
+  transform: translateY(-1px) scale(0.98);
 }
 
 .danger-btn {

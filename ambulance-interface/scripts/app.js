@@ -236,4 +236,60 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('<i class="fa-solid fa-wifi"></i> Connection restored. Live updates resumed.', 'success');
     VoiceNav.speak("Connection restored.", true);
   });
+
+  // ---- Premium Interactive UI (Cursor Follower & Magnetic Tilt) ----
+  const landing = document.getElementById('landing-page');
+  const follower = document.querySelector('.light-follower');
+  const glassCard = document.querySelector('.glass-card');
+  const title = document.querySelector('.project-title');
+
+  if (landing) {
+    landing.addEventListener('mousemove', (e) => {
+      // 1. Move Light Follower
+      if (follower) {
+        follower.style.left = `${e.clientX}px`;
+        follower.style.top = `${e.clientY}px`;
+      }
+
+      // 2. Magnetic Card Tilt
+      if (glassCard) {
+        const rect = glassCard.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const deltaX = (e.clientX - centerX) / 10;
+        const deltaY = (e.clientY - centerY) / 10;
+        
+        // Clamp the rotation
+        const rotateX = Math.max(-10, Math.min(10, -deltaY / 2));
+        const rotateY = Math.max(-10, Math.min(10, deltaX / 2));
+        
+        glassCard.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      }
+
+      // 3. Parallax for Orbs & Title
+      if (title) {
+        const tx = (e.clientX - window.innerWidth / 2) / 100;
+        const ty = (e.clientY - window.innerHeight / 2) / 100;
+        title.style.transform = `translate(${tx}px, ${ty}px)`;
+      }
+    });
+
+    // Reset on mouse leave
+    landing.addEventListener('mouseleave', () => {
+       if (glassCard) glassCard.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
+       if (title) title.style.transform = `translate(0, 0)`;
+    });
+    // 4. HEARTBEAT MONITOR SIMULATION
+    const bpmVal = document.getElementById('bpm-val');
+    if (bpmVal) {
+      setInterval(() => {
+        const currentBpm = parseInt(bpmVal.innerText);
+        const diff = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+        let newBpm = currentBpm + diff;
+        if (newBpm < 70) newBpm = 72;
+        if (newBpm > 85) newBpm = 82;
+        bpmVal.innerText = newBpm;
+      }, 2000);
+    }
+  }
 });
