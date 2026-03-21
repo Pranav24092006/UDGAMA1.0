@@ -37,9 +37,9 @@ const MapManager = {
 
   // Multiple Hospitals for Feature 2
   hospitals: {
-    'city_general': { name: 'City General Hospital', coords: [12.9850, 77.6050], phone: '+91-80-2222-1111' },
-    'mercy_care': { name: 'Mercy Care Center', coords: [12.9600, 77.6100], phone: '+91-80-4444-3333' },
-    'metro_health': { name: 'Metro Health Hub', coords: [12.9780, 77.5800], phone: '+91-80-6666-5555' }
+    'city_general': { name: 'City General Hospital', coords: [12.9850, 77.6050], phone: '+91 80222 21111' },
+    'mercy_care': { name: 'Mercy Care Center', coords: [12.9600, 77.6100], phone: '+91 80444 43333' },
+    'metro_health': { name: 'Metro Health Hub', coords: [12.9780, 77.5800], phone: '+91 80666 65555' }
   },
 
   // Coordinates for Demo
@@ -266,7 +266,7 @@ const MapManager = {
         const newHospitals = {};
         data.elements.forEach((el, idx) => {
           const h = el.tags;
-          const phone = h.phone || h['contact:phone'] || '+91-0000-0000';
+          const phone = h.phone || h['contact:phone'] || '+91 91000 00000';
           newHospitals[el.id] = {
             name: h.name,
             coords: [el.lat, el.lon],
@@ -291,7 +291,7 @@ const MapManager = {
           'sim_local': {
             name: 'Local Emergency Center (Simulated)',
             coords: [fallbackLat, fallbackLng],
-            phone: '+91-9999-8888'
+            phone: '+91 99998 88888'
           }
         };
         this.hospitalCoord = [fallbackLat, fallbackLng];
@@ -309,7 +309,7 @@ const MapManager = {
           'sim_error_local': {
             name: 'Nearby Medical Facility (Fallback)',
             coords: [fallbackLat, fallbackLng],
-            phone: '+91-101'
+            phone: '+91 98101 01010'
           }
       };
       this.hospitalCoord = [fallbackLat, fallbackLng];
@@ -474,7 +474,7 @@ const MapManager = {
           iconSize: [14, 32], iconAnchor: [7, 16]
         });
         const marker = L.marker(coord, { icon: icon }).addTo(this.map);
-        this.trafficLightNodes.push({ marker, latlng: L.latLng(coord), triggered: false });
+        this.trafficLightNodes.push({ marker, latlng: L.latLng(coord), triggered: false, reset: false, spawnIndex: idx });
       }
     }
 
@@ -535,6 +535,16 @@ const MapManager = {
           
           showToast('<i class="fa-solid fa-satellite-dish"></i> V2X: INTERSECTION SECURED (GREEN WAVE)', 'success');
           VoiceNav.speak("Intersection secured.");
+        } else if (node.triggered && !node.reset && this.currentIndex > node.spawnIndex + 5) {
+          node.reset = true;
+          // Turn light back to red
+          const redIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div class="tl-box red-active"><div class="tl-bulb tl-red"></div><div class="tl-bulb tl-yellow"></div><div class="tl-bulb tl-green"></div></div>`,
+            iconSize: [14, 32], iconAnchor: [7, 16]
+          });
+          node.marker.setIcon(redIcon);
+          console.log("Traffic light reset to red at index:", node.spawnIndex);
         }
       });
 
