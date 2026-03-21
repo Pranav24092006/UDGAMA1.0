@@ -185,6 +185,11 @@ document.addEventListener('DOMContentLoaded', () => {
               PoliceMapManager.updateAmbulanceLocation(amb.location.lat, amb.location.lng);
               PoliceMapManager.resetGhostTracking();
             }
+
+            // Sync traffic signals
+            if (amb.signals) {
+              PoliceMapManager.syncSignals(amb.signals);
+            }
           }
 
           if (amb.eta) {

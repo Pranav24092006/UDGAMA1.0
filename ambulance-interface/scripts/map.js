@@ -595,13 +595,21 @@ const MapManager = {
         const mapEtaVal = document.getElementById('map-eta-val');
         if (mapEtaVal) mapEtaVal.innerText = etaText;
 
+        // Prepare signal states for sync
+        const signalStates = this.trafficLightNodes.map(node => ({
+          id: node.spawnIndex,
+          triggered: node.triggered,
+          reset: node.reset
+        }));
+
         fetch(`${window.location.origin}/update-location`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             ambulanceId: window.currentAmbulanceId, 
             lat: pos[0], 
             lng: pos[1],
-            eta: etaText
+            eta: etaText,
+            signals: signalStates
           })
         })
         .then(r => r.json())

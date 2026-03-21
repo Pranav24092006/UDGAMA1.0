@@ -126,7 +126,7 @@ const PoliceMapManager = {
           iconAnchor: [6, 14]
         });
         const marker = L.marker(coord, { icon: icon }).addTo(this.map);
-        this.trafficLightNodes.push({ marker, latlng: L.latLng(coord), triggered: false });
+        this.trafficLightNodes.push({ id: idx, marker, latlng: L.latLng(coord), triggered: false, reset: false });
       }
     }
 
@@ -160,23 +160,34 @@ const PoliceMapManager = {
       }
     }
 
-    // V2X Preemption Check
-    const ambLatLng = L.latLng(lat, lng);
-    this.trafficLightNodes.forEach(node => {
-      if (!node.triggered && ambLatLng.distanceTo(node.latlng) < 300) {
-        node.triggered = true;
-        // Turn light green
-        const greenIcon = L.divIcon({
-          className: 'custom-div-icon',
-          html: `<div class="tl-box green-active"><div class="tl-bulb tl-red"></div><div class="tl-bulb tl-yellow"></div><div class="tl-bulb tl-green"></div></div>`,
-          iconSize: [12, 28], iconAnchor: [6, 14]
-        });
-        node.marker.setIcon(greenIcon);
-        // Dispatch ripple signal
-        this.triggerRipple([node.latlng.lat, node.latlng.lng], '#0ea5e9', 300);
-        
-        if (typeof showTacticalToast === 'function') {
-          showTacticalToast('<i class="fa-solid fa-satellite-dish"></i> V2X PREEMPTION: INTERSECTION CLEARED AHEAD', 'info');
+    // Note: V2X Preemption is now synced from the ambulance via syncSignals()
+  },
+
+  syncSignals(signals) {
+    if (!signals || !Array.isArray(signals)) return;
+
+    signals.forEach(s => {
+      const node = this.trafficLightNodes.find(n => n.id === s.id);
+      if (node) {
+        if (s.reset && !node.reset) {
+          node.reset = true;
+          // Turn light back to red
+          const redIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div class="tl-box red-active"><div class="tl-bulb tl-red"></div><div class="tl-bulb tl-yellow"></div><div class="tl-bulb tl-green"></div></div>`,
+            iconSize: [12, 28], iconAnchor: [6, 14]
+          });
+          node.marker.setIcon(redIcon);
+        } else if (s.triggered && !node.triggered && !s.reset) {
+          node.triggered = true;
+          // Turn light green
+          const greenIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div class="tl-box green-active"><div class="tl-bulb tl-red"></div><div class="tl-bulb tl-yellow"></div><div class="tl-bulb tl-green"></div></div>`,
+            iconSize: [12, 28], iconAnchor: [6, 14]
+          });
+          node.marker.setIcon(greenIcon);
+          this.triggerRipple([node.latlng.lat, node.latlng.lng], '#0ea5e9', 300);
         }
       }
     });
