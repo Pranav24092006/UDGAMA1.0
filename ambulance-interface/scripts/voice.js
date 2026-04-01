@@ -46,8 +46,11 @@ const VoiceNav = {
   queue: [],
   isSpeaking: false,
 
-  speak(text, priority = false) {
-    if (!this.isEnabled) return;
+  speak(text, priority = false, callback = null) {
+    if (!this.isEnabled) {
+      if (callback) callback();
+      return;
+    }
     
     if (priority) {
       this.synth.cancel();
@@ -55,7 +58,7 @@ const VoiceNav = {
       this.isSpeaking = false;
     }
 
-    this.queue.push({ text, priority });
+    this.queue.push({ text, priority, callback });
     this.processQueue();
   },
 
@@ -63,7 +66,7 @@ const VoiceNav = {
     if (this.isSpeaking || this.queue.length === 0) return;
 
     this.isSpeaking = true;
-    const { text, priority } = this.queue.shift();
+    const { text, priority, callback } = this.queue.shift();
     const utterance = new SpeechSynthesisUtterance(text);
     
     // Find preferred voice
@@ -78,11 +81,13 @@ const VoiceNav = {
 
     utterance.onend = () => {
       this.isSpeaking = false;
+      if (callback) callback();
       this.processQueue(); // Play next in queue
     };
 
     utterance.onerror = () => {
       this.isSpeaking = false;
+      if (callback) callback();
       this.processQueue();
     };
 
@@ -131,11 +136,17 @@ const VoiceAssistant = {
     if (!this.recognition) return;
     this.onResultCallback = callback;
     try {
-      this.recognition.start();
       this.isListening = true;
       document.getElementById('voice-overlay').classList.add('active');
       document.getElementById('voice-overlay-text').innerText = "Listening...";
-      VoiceNav.speak("I'm listening. Describe the emergency.", true);
+      
+      // Fix: Instantly cancel any ongoing AI speech and start listening
+      VoiceNav.synth.cancel();
+      try {
+        this.recognition.start();
+      } catch (e) { 
+        console.warn("Recognition start failed", e); 
+      }
     } catch (e) {
       console.error("Recognition already started", e);
     }

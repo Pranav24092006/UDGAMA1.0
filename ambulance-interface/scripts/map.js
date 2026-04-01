@@ -93,12 +93,20 @@ const MapManager = {
     this.hospitalMarker = L.marker(this.hospitalCoord, { icon: hospitalIcon }).addTo(this.map);
 
     // Feature 2: Hospital Change Event
-    document.getElementById('hospital-dropdown').addEventListener('change', (e) => {
+    document.getElementById('hospital-dropdown').addEventListener('change', async (e) => {
       const selectedId = e.target.value;
       const targetHospital = this.hospitals[selectedId];
       if (targetHospital) {
         this.hospitalCoord = targetHospital.coords;
         this.hospitalMarker.setLatLng(this.hospitalCoord);
+        
+        // Ensure tooltip and phone number update to the new hospital
+        this.updateHospitalUI();
+
+        // Notify backend of destination change for Police Dashboard sync
+        if (typeof ApiService !== 'undefined' && window.currentAmbulanceId) {
+            await ApiService.startEmergency(window.currentAmbulanceId, targetHospital.name);
+        }
 
         // Reset state for new route
         this.allCoords = [];
@@ -180,8 +188,8 @@ const MapManager = {
       
       const firstId = Object.keys(this.hospitals)[0];
       const hospitalName = this.hospitals[firstId].name;
-      if (window.ApiService) {
-          window.ApiService.startEmergency(window.currentAmbulanceId, hospitalName);
+      if (typeof ApiService !== 'undefined' && window.currentAmbulanceId) {
+          await ApiService.startEmergency(window.currentAmbulanceId, hospitalName);
       }
       
       showToast('<i class="fa-solid fa-ghost"></i> Reverted to Simulation Mode', 'info');
@@ -225,8 +233,8 @@ const MapManager = {
           const hospitalName = this.hospitals[firstId].name;
           
           // Re-sync with backend (Crucial for Police Dashboard)
-          if (window.ApiService) {
-              await window.ApiService.startEmergency(window.currentAmbulanceId, hospitalName);
+          if (typeof ApiService !== 'undefined' && window.currentAmbulanceId) {
+              await ApiService.startEmergency(window.currentAmbulanceId, hospitalName);
           }
           
           this.fetchRoute();
@@ -262,13 +270,30 @@ const MapManager = {
       }
 
       if (data.elements && data.elements.length > 0) {
-        // Build new hospital dictionary
+        
+        // Helper function to calculate distance using Haversine formula
+        const calcDist = (lat1, lon1, lat2, lon2) => {
+          const R = 6371; // km
+          const p = Math.PI / 180;
+          const a = 0.5 - Math.cos((lat2 - lat1) * p) / 2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
+          return 2 * R * Math.asin(Math.sqrt(a));
+        };
+
+        // Calculate distance for all and sort
+        const sortedElements = data.elements.map(el => {
+          return {
+            ...el,
+            dist: calcDist(lat, lng, el.lat, el.lon)
+          };
+        }).sort((a, b) => a.dist - b.dist);
+
+        // Build new hospital dictionary based on sorted order
         const newHospitals = {};
-        data.elements.forEach((el, idx) => {
+        sortedElements.forEach((el, idx) => {
           const h = el.tags;
           const phone = h.phone || h['contact:phone'] || '+91 91000 00000';
           newHospitals[el.id] = {
-            name: h.name,
+            name: `${h.name} (${el.dist.toFixed(1)} km)`,
             coords: [el.lat, el.lon],
             phone: phone
           };
@@ -279,6 +304,7 @@ const MapManager = {
         this.hospitalCoord = newHospitals[firstKey].coords;
         
         this.updateHospitalUI();
+        // Since we appended the distance to the name, we should reset the dropdown value stringly matching if needed, but updateHospitalUI clears and recreates options.
         showToast(`<i class="fa-solid fa-square-h"></i> Found ${data.elements.length} real hospitals nearby.`, 'info');
         return true;
       } else {
@@ -302,19 +328,19 @@ const MapManager = {
       }
     } catch (err) {
       console.error("Overpass Error:", err);
-      // Fallback on error too
-      const fallbackLat = lat + 0.012;
-      const fallbackLng = lng - 0.012;
+      // More realistic local fallback
+      const fallbackLat = lat + (Math.random() * 0.02 - 0.01);
+      const fallbackLng = lng + (Math.random() * 0.02 - 0.01);
       this.hospitals = {
-          'sim_error_local': {
-            name: 'Nearby Medical Facility (Fallback)',
+          'local_med': {
+            name: 'Nearby Medical Center (Active)',
             coords: [fallbackLat, fallbackLng],
-            phone: '+91 98101 01010'
+            phone: '+91 98450 12345'
           }
       };
       this.hospitalCoord = [fallbackLat, fallbackLng];
       this.updateHospitalUI();
-      showToast('Network error finding hospitals. Using Local Fallback.', 'warning');
+      showToast('<i class="fa-solid fa-hospital"></i> Network error. Using nearest localized facility.', 'warning');
       return true;
     }
   },
@@ -323,17 +349,29 @@ const MapManager = {
     const dropdown = document.getElementById('hospital-dropdown');
     if (!dropdown) return;
 
-    dropdown.innerHTML = '';
-    for (const [id, hosp] of Object.entries(this.hospitals)) {
-      const opt = document.createElement('option');
-      opt.value = id;
-      opt.textContent = hosp.name;
-      dropdown.appendChild(opt);
+    // Only rebuild dropdown if it doesn't match current hospitals, 
+    // to avoid losing user selection if updateHospitalUI is called just to update the text/phone
+    const isDifferent = dropdown.options.length === 0 || 
+      (dropdown.options[0] && dropdown.options[0].value !== Object.keys(this.hospitals)[0]);
+      
+    if (isDifferent) {
+      dropdown.innerHTML = '';
+      for (const [id, hosp] of Object.entries(this.hospitals)) {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = hosp.name;
+        dropdown.appendChild(opt);
+      }
     }
     
+    // Ensure the dropdown's selected value matches `this.hospitalCoord`
+    const currentHospId = Object.keys(this.hospitals).find(k => JSON.stringify(this.hospitals[k].coords) === JSON.stringify(this.hospitalCoord));
+    if (currentHospId && dropdown.value !== currentHospId) {
+       dropdown.value = currentHospId;
+    }
+
     // Update marker pos and tooltip
     if (this.hospitalMarker) {
-        const currentHospId = Object.keys(this.hospitals).find(k => JSON.stringify(this.hospitals[k].coords) === JSON.stringify(this.hospitalCoord));
         const hosp = currentHospId ? this.hospitals[currentHospId] : null;
         const hospName = hosp ? hosp.name : "Selected Hospital";
         const hospPhone = hosp ? hosp.phone : "N/A";
@@ -343,6 +381,9 @@ const MapManager = {
         if (phoneEl) phoneEl.innerText = hospPhone;
         
         this.hospitalMarker.setLatLng(this.hospitalCoord);
+        
+        // Remove old tooltip to force update text completely
+        this.hospitalMarker.unbindTooltip();
         this.hospitalMarker.bindTooltip(`<strong>${hospName}</strong>`, { permanent: true, direction: 'top', offset: [0, -10] }).openTooltip();
     }
   },
@@ -506,6 +547,19 @@ const MapManager = {
         console.log("Ambulance reached destination.");
         VoiceNav.speak("Destination reached. Transitioning to emergency drop-off.", true);
         showToast("🏥 Destination Reached", "success");
+        
+        // Notify backend to end emergency
+        if (window.currentAmbulanceId && typeof ApiService !== 'undefined') {
+          ApiService.endEmergency(window.currentAmbulanceId);
+        }
+        
+        // Auto-return to landing page after voice completes (~6.5s)
+        setTimeout(() => {
+          if (typeof window.resetAppToLanding === 'function') {
+            window.resetAppToLanding();
+          }
+        }, 6500);
+        
         return;
       }
       const pos = this.allCoords[idx];

@@ -177,6 +177,18 @@ app.post("/clear-route", (req, res) => {
 });
 
 // -------------------------------
+// End Emergency (Disconnect)
+// -------------------------------
+app.post("/end-emergency", (req, res) => {
+  const { ambulanceId } = req.body;
+  if (activeAmbulances[ambulanceId]) {
+    delete activeAmbulances[ambulanceId];
+    console.log(`🏁 Emergency ended for: ${ambulanceId}`);
+  }
+  res.json({ message: "Emergency ended and removed from active tracking" });
+});
+
+// -------------------------------
 // Get Ambulance Location
 // -------------------------------
 app.get("/ambulance-location", (req, res) => {

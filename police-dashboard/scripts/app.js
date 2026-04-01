@@ -128,20 +128,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. Backend Polling Loop (Replaces LocalStorage)
   // =============================================
   window.currentAmbulanceId = null;
+  window.currentAmbulanceStartedAt = null;
 
   setInterval(async () => {
     try {
       const res = await fetch(`${window.location.origin}/ambulance-location`);
       if (res.ok) {
         const ambulances = await res.json();
-        // Since it's a demo, just pick the first active ambulance
+        
         if (ambulances.length > 0) {
           const amb = ambulances[0];
           
-          // Detect new ambulance and reset UI
-          if (amb.ambulanceId !== window.currentAmbulanceId) {
-            console.log("New Ambulance Detected:", amb.ambulanceId);
+          // Detect new ambulance or re-routed emergency and reset UI
+          if (amb.ambulanceId !== window.currentAmbulanceId || amb.startedAt !== window.currentAmbulanceStartedAt) {
+            console.log("New/Rerouted Emergency Detected:", amb.ambulanceId);
             window.currentAmbulanceId = amb.ambulanceId;
+            window.currentAmbulanceStartedAt = amb.startedAt;
 
             // Reset Dispatch Button
             const btnDispatch = document.getElementById('btn-dispatch');
@@ -208,7 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           if (amb.route && amb.route.length > 0) {
-            // Use the last point of the route as the hospital location if it's a new city
             const hospCoord = amb.route[amb.route.length - 1];
             PoliceMapManager.drawRoute(amb.route, hospCoord);
           }
@@ -220,9 +221,33 @@ document.addEventListener('DOMContentLoaded', () => {
           if (amb.status === 'CLEARED' && PoliceMapManager.trafficLayer) {
             handleRouteCleared();
           }
+        } else {
+          // No active ambulances: Clear the UI and Map
+          if (window.currentAmbulanceId) {
+            console.log("No active ambulances. Clearing Dashboard.");
+            window.currentAmbulanceId = null;
+            window.currentAmbulanceStartedAt = null;
+            PoliceMapManager.resetMap();
+            const statusEl = document.getElementById('emergency-status');
+            if (statusEl) { statusEl.innerText = 'NO ACTIVE INCIDENTS'; statusEl.className = 'stat-value text-gray'; }
+            const etaTimer = document.getElementById('eta-timer');
+            if (etaTimer) etaTimer.innerText = '--:--';
+            const countEl = document.getElementById('active-count');
+            if (countEl) countEl.innerText = '00';
+          }
+        }
+      } else {
+        // Fetch failed but server might be down or offline - allow ghosting if route exists
+        if (window.currentAmbulanceId && PoliceMapManager.allCoords.length > 0) {
+          PoliceMapManager.ghostTrackAmbulance(PoliceMapManager.allCoords);
         }
       }
-    } catch (err) {}
+    } catch (err) {
+      // Network error (true offline) - allow ghosting
+      if (window.currentAmbulanceId && PoliceMapManager.allCoords.length > 0) {
+        PoliceMapManager.ghostTrackAmbulance(PoliceMapManager.allCoords);
+      }
+    }
   }, 1500);
 });
 

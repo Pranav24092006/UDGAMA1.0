@@ -24,6 +24,14 @@ const ApiService = {
         body: JSON.stringify({ ambulanceId, jamPoint })
       });
     } catch (e) { console.error(e); }
+  },
+  async endEmergency(ambulanceId) {
+    try {
+      await fetch(`${API_BASE}/end-emergency`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ambulanceId })
+      });
+    } catch (e) { console.error(e); }
   }
 };
 
@@ -204,10 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 40);
     }
 
-    // Post to backend
+    // Post to backend using the array format expected by Police Dashboard
     if (MapManager.trafficCoords && MapManager.trafficCoords.length > 0) {
-      const jamStart = MapManager.trafficCoords[0];
-      ApiService.reportJam(window.currentAmbulanceId, { lat: jamStart[0], lng: jamStart[1] });
+      ApiService.reportJam(window.currentAmbulanceId, MapManager.trafficCoords);
     }
 
     showToast('<i class="fa-solid fa-tower-broadcast"></i> Alert sent to traffic control', 'info');
@@ -236,6 +243,34 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('<i class="fa-solid fa-wifi"></i> Connection restored. Live updates resumed.', 'success');
     VoiceNav.speak("Connection restored.", true);
   });
+
+  // ---- Return to Base (End Emergency) ----
+  window.resetAppToLanding = () => {
+    // Hide dashboard, show landing
+    dashboardPage.classList.remove('active');
+    landingPage.classList.add('active');
+    
+    // Reset inputs
+    ambulanceInput.value = '';
+    if (emergencyDescInput) emergencyDescInput.value = '';
+    
+    // End emergency in backend
+    if (window.currentAmbulanceId && typeof ApiService !== 'undefined') {
+      ApiService.endEmergency(window.currentAmbulanceId);
+    }
+    
+    window.currentAmbulanceId = "";
+    if (window.MapManager) MapManager.resetMovement();
+    
+    showToast('<i class="fa-solid fa-house-medical"></i> Returned to base. Ready for next dispatch.', 'success');
+  };
+
+  const endBtn = document.getElementById('end-emergency-btn');
+  if (endBtn) {
+    endBtn.addEventListener('click', () => {
+      window.resetAppToLanding();
+    });
+  }
 
   // ---- Premium Interactive UI (Cursor Follower & Magnetic Tilt) ----
   const landing = document.getElementById('landing-page');

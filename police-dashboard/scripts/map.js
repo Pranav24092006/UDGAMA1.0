@@ -34,23 +34,7 @@ const PoliceMapManager = {
       maxZoom: 20
     }).addTo(this.map);
 
-    // Ambulance Marker (pulsing blue target)
-    const ambIcon = L.divIcon({
-      className: 'custom-div-icon',
-      html: `<div style="background:var(--neon-blue);width:16px;height:16px;border-radius:50%;box-shadow:0 0 20px 5px var(--neon-blue-glow);border:2px solid #fff;"></div>`,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8]
-    });
-    this.ambMarker = L.marker(this.startCoord, { icon: ambIcon, zIndexOffset: 1000 }).addTo(this.map);
-
-    // Hospital Icon
-    const hospitalIcon = L.divIcon({
-      className: 'custom-div-icon',
-      html: `<div style="background:var(--neon-amber);width:20px;height:20px;border-radius:4px;border:2px solid white;box-shadow:0 0 15px rgba(245,158,11,0.6);display:flex;justify-content:center;align-items:center;"><i class="fa-solid fa-square-h" style="color:white;font-size:12px;"></i></div>`,
-      iconSize: [20, 20],
-      iconAnchor: [10, 10]
-    });
-    L.marker(this.hospitalCoord, { icon: hospitalIcon }).addTo(this.map);
+    // Initial markers are now dynamically generated when an active ambulance is detected.
 
     // Removed local fetchRoute as route comes from ambulance backend
   },
@@ -138,6 +122,14 @@ const PoliceMapManager = {
     if (this.ambMarker) {
       this.ambMarker.setLatLng(pos);
       this.map.panTo(pos, { animate: true, duration: 1.5 });
+    } else {
+      const ambIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div style="background:var(--neon-blue);width:16px;height:16px;border-radius:50%;box-shadow:0 0 20px 5px var(--neon-blue-glow);border:2px solid #fff;"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+      this.ambMarker = L.marker(pos, { icon: ambIcon, zIndexOffset: 1000 }).addTo(this.map);
     }
     const coordsEl = document.getElementById('live-coords');
     if (coordsEl) coordsEl.innerText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
@@ -349,6 +341,37 @@ const PoliceMapManager = {
         this.map.removeLayer(flashCircle);
       }
     }, 500);
+  },
+
+  // =============================================
+  // Reset map completely for new emergencies
+  // =============================================
+  resetMap() {
+    this.resetGhostTracking();
+    this.clearTraffic();
+    
+    if (this.routePolyline) {
+      this.map.removeLayer(this.routePolyline);
+      this.routePolyline = null;
+    }
+    
+    if (this.ambMarker) {
+      this.map.removeLayer(this.ambMarker);
+      this.ambMarker = null;
+    }
+    
+    if (this.hospMarker) {
+      this.map.removeLayer(this.hospMarker);
+      this.hospMarker = null;
+    }
+    
+    if (this.trafficLightNodes && this.trafficLightNodes.length > 0) {
+      this.trafficLightNodes.forEach(node => {
+        if (node.marker) this.map.removeLayer(node.marker);
+      });
+    }
+    this.trafficLightNodes = [];
+    this.allCoords = [];
   },
 
   // =============================================
