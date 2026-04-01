@@ -4,14 +4,15 @@
 
 ## 1. Cover Page
 **Project Title**: Smart Ambulance Coordination System
-**Team Name**: [Insert Team Name]
+**Team Name**: Infinitos
 **Domain / Track**: Smart City / Healthcare / Intelligent Transportation Systems
 **Team Members (Name and Role)**:
-- [Your Name] (Lead Developer / System Architect)
-- [Member Name] (Role)
-- [Member Name] (Role)
-**Institution / Organization**: [Your Institution]
-**Hackathon Name**: [Hackathon Name]
+- Pranav Sai Nalajala (Lead Developer / System Architect)
+- LVSS Ajay Sunkara(Backend)
+- Sakthivel Tharshni (Frountend)
+- Shaik Ismaiel(API Keys)
+**Institution / Organization**: RVR & JC COLLAGE OF ENGINEERING
+**Hackathon Name**: Codecure - AI Hackathon
 
 ---
 
