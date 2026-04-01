@@ -28,26 +28,30 @@ The system integrates real-time GPS tracking, dynamic hospital discovery (via Op
 - Node.js installed on your machine.
 
 ### Installation & Execution
-1. Open a terminal and navigate to the project directory.
-2. Navigate to the backend folder:
+1.Clone the repository:
+
+  git clone <your-repo-link>
+  cd <your-project-folder>
+2. Open a terminal and navigate to the project directory.
+3. Navigate to the backend folder:
    ```bash
    cd backend
    ```
-3. Install dependencies:
+4. Install dependencies:
    ```bash
    npm install
    ```
-4. Start the server (runs on port 5000 by default):
+5. Start the server (runs on port 5000 by default):
    ```bash
    node server.js
    ```
    *(Wait for the message: `🚀 Smart Ambulance API running on port 5000`)*
 
 ### Access the Interfaces
-Because geolocation APIs require a secure context, the frontend is served statically by the Node.js backend. You can access the interfaces through these URLs:
-- **Ambulance Interface**: [http://localhost:5000/ambulance](http://localhost:5000/ambulance)
-- **Police Dashboard**: [http://localhost:5000/police](http://localhost:5000/police)
-- **Health Check**: [http://localhost:5000/](http://localhost:5000/)
+The frontend is served through a secure backend environment to support features like geolocation APIs, which require a secure context (HTTPS).
+you can access the application interfaces using the following links:
+**Ambulance Interface**:https://udgama1-0.onrender.com/ambulance
+**Police Dashboard**:https://udgama1-0.onrender.com/police
 
 ## 📝 Usage Guide
 1. **Open both links** in different browser windows/tabs.
